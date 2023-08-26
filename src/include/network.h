@@ -2,7 +2,7 @@
 #include <arpa/inet.h>
 
 // Define the IP address to work in
-#define IP_ADDRESS "192.168.56.255"
+#define IP_ADDRESS "255.255.255.255"
 #define PORT 12360
 
 // Define the relevant structs for the netwokr application

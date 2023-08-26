@@ -24,7 +24,7 @@ int main() {
     memset(&addr, 0, sizeof(addr));
     addr.sin_family = AF_INET;
     addr.sin_port = htons(PORT);
-    addr.sin_addr.s_addr = inet_addr(IP_ADDRESS);
+    addr.sin_addr.s_addr = INADDR_ANY;
 
     // Bind the socket to the broadcast port
     if (bind(sock, (struct sockaddr*)&addr, sizeof(addr)) < 0) {
@@ -32,8 +32,9 @@ int main() {
         close(sock);
         exit(1);
     }
-
-    printf("Receiver node listening on port %d...\n", PORT);
+    printf("Receiver node listening...\n");
+    printf(" -IPv4: %s\n", IP_ADDRESS);
+    printf(" -Port: %d\n", PORT);
 
     while (1) {
         ssize_t received_bytes = recvfrom(sock, message, sizeof(message), 0, NULL, NULL);

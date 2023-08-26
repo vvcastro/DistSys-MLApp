@@ -22,7 +22,7 @@ int main() {
     memset(&addr, 0, sizeof(addr));
     addr.sin_family = AF_INET;
     addr.sin_port = htons(PORT);
-    addr.sin_addr.s_addr = inet_addr(IP_ADDRESS);
+    addr.sin_addr.s_addr = INADDR_ANY;
 
     // Set the socket option to allow broadcast
     int broadcastEnable = 1;

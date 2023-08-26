@@ -110,6 +110,7 @@ void* receive_messages(void* arg) {
             perror("Message receiving error");
             exit(1);
         }
+        encoded_message[MAX_MESSAGE_SIZE - 1] = '\0';
         printf("Received message: %s\n", encoded_message);
     }
     return NULL;
