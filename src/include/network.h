@@ -1,8 +1,22 @@
-#include <pthread.h>
+#ifndef NETWORK_H
+
+#ifdef _WIN32
+
+#include <winsock2.h>
+#pragma comment(lib, "ws2_32.lib")
+
+#elif defined(__unix__) || defined(__APPLE__)
+
 #include <arpa/inet.h>
+#define SOCKET_ERR -1
+
+#endif
+
+#include <pthread.h>
+
 
 // Define the IP address to work in
-#define IP_ADDRESS "255.255.255.255"
+#define IP_ADDRESS inet_addr("192.168.56.255")
 #define PORT 12360
 
 // Define the relevant structs for the netwokr application
@@ -57,3 +71,5 @@ void* receive_messages(void* arg);
 // Clean up resources
 void close_node(ReliableNode* node);
 void delete_message(Message* message);
+
+#endif

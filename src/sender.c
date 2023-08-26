@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include <arpa/inet.h>
+
 
 int main() {
     int sock;
@@ -16,17 +16,16 @@ int main() {
         perror("Socket creation error");
         exit(1);
     }
+    int broadcastEnable = 1;
+    setsockopt(sock, SOL_SOCKET, SO_BROADCAST, &broadcastEnable, sizeof(broadcastEnable));
+
 
     // Set up the address structure for broadcast
     struct sockaddr_in addr;
     memset(&addr, 0, sizeof(addr));
     addr.sin_family = AF_INET;
     addr.sin_port = htons(PORT);
-    addr.sin_addr.s_addr = INADDR_ANY;
-
-    // Set the socket option to allow broadcast
-    int broadcastEnable = 1;
-    setsockopt(sock, SOL_SOCKET, SO_BROADCAST, &broadcastEnable, sizeof(broadcastEnable));
+    addr.sin_addr.s_addr = IP_ADDRESS;
 
     // Simulate sending a message
     snprintf(message, MAX_MESSAGE_SIZE, "Hello from Node A");

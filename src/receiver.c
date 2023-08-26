@@ -4,7 +4,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include <arpa/inet.h>
 
 int main() {
     int sock;
@@ -33,7 +32,7 @@ int main() {
         exit(1);
     }
     printf("Receiver node listening...\n");
-    printf(" -IPv4: %s\n", IP_ADDRESS);
+    printf(" -IPv4: %d\n", INADDR_ANY);
     printf(" -Port: %d\n", PORT);
 
     while (1) {
