@@ -9,6 +9,10 @@ BUILD_DIR := build
 SRC := $(wildcard $(SRC_DIR)/*.c)
 OBJ := $(patsubst $(SRC_DIR)/%.c, $(OBJ_DIR)/%.o, $(SRC))
 
+ifeq ($(OS),Windows_NT)
+    LIBS += -lws2_32
+endif
+
 all: directories sender receiver node
 
 directories:
