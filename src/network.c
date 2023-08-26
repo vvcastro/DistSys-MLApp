@@ -50,10 +50,20 @@ ReliableNode* create_node() {
     node->pid = -1;
     node->seq_number = 0;
 
+    // SetUp connection in Windows application
+    #ifdef _WIN32
+    WSADATA wsa;
+    if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0) {
+        perror("WSAStartup failed");
+        exit(1);
+    }
+    #endif
+
     // Set Up of the sender socket (with broadcasting)
     node->sender = socket(AF_INET, SOCK_DGRAM, 0);
     if (node->sender < 0) {
         perror("Sender creation error");
+        close_node(node);
         exit(1);
     }
     int broadcast = 1;
@@ -63,7 +73,7 @@ ReliableNode* create_node() {
     node->listener = socket(AF_INET, SOCK_DGRAM, 0);
     if (node->listener < 0) {
         perror("Listener creation error");
-        close(node->listener);
+        close_node(node);
         exit(1);
     }
     int reusePort = 1;
@@ -143,9 +153,18 @@ void close_node(ReliableNode* node) {
     pthread_cancel(node->listener_thread);
     pthread_join(node->listener_thread, NULL);
 
+    // For windows
+    #ifdef _WIN32
+    WSACleanup();
+    #endif
+
     // Close the sockets connections
-    close(node->listener);
-    close(node->sender);
+    if (node->listener) {
+        close(node->listener);
+    };
+    if (node->sender) {
+        close(node->sender);
+    }
     free(node);
 }
 

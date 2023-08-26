@@ -10,10 +10,22 @@ int main() {
     int sock;
     char message[MAX_MESSAGE_SIZE];
 
+    // SetUp connection in Windows application
+    #ifdef _WIN32
+    WSADATA wsa;
+    if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0) {
+        perror("WSAStartup failed");
+        exit(1);
+    }
+    #endif
+
     // Create socket
     sock = socket(AF_INET, SOCK_DGRAM, 0);
     if (sock < 0) {
         perror("Socket creation error");
+        #ifdef _WIN32
+        WSACleanup();
+        #endif
         exit(1);
     }
     int broadcastEnable = 1;
@@ -35,11 +47,17 @@ int main() {
     if (sent_bytes < 0) {
         perror("Message sending error");
         close(sock);
+        #ifdef _WIN32
+        WSACleanup();
+        #endif
         exit(1);
     }
 
     printf("Message sent: %s\n", message);
 
     close(sock);
+    #ifdef _WIN32
+    WSACleanup();
+    #endif
     return 0;
 }
