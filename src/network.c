@@ -82,7 +82,7 @@ void start_network_listening(ReliableNode* receiver) {
     memset(&listen_addr, 0, sizeof(listen_addr));
     listen_addr.sin_family = AF_INET;
     listen_addr.sin_port = htons(PORT);
-    listen_addr.sin_addr.s_addr = INADDR_ANY;
+    listen_addr.sin_addr.s_addr = inet_addr(IP_ADDRESS);
 
     if (bind(receiver->listener, (struct sockaddr*)&listen_addr, sizeof(listen_addr)) < 0) {
         perror("Binding error");
@@ -122,7 +122,7 @@ void send_message(ReliableNode* sender, Message* message) {
     memset(&saddr, 0, sizeof(saddr));
     saddr.sin_family = AF_INET;
     saddr.sin_port = htons(PORT);
-    saddr.sin_addr.s_addr = htonl(INADDR_BROADCAST);
+    saddr.sin_addr.s_addr = inet_addr(IP_ADDRESS);
 
     // Serialises and sends the message
     char* encoded_message = encode_message(message);
