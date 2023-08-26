@@ -46,7 +46,11 @@ int main() {
         exit(1);
     }
     printf("Receiver node listening...\n");
+    #ifdef _WIN32
+    printf(" -IPv4: %ld\n", INADDR_ANY);
+    #else
     printf(" -IPv4: %u\n", INADDR_ANY);
+    #endif
     printf(" -Port: %d\n", PORT);
 
     while (1) {
