@@ -66,8 +66,8 @@ ReliableNode* create_node() {
         close_node(node);
         exit(1);
     }
-    int broadcast = 1;
-    setsockopt(node->sender, SOL_SOCKET, SO_BROADCAST, &broadcast, sizeof(broadcast));
+    int bcastEnabled = 1;
+    setsockopt(node->sender, SOL_SOCKET, SO_BROADCAST, (const char*)&bcastEnabled, sizeof(bcastEnabled));
 
     // Set Up of the listener ( with address reuse )
     node->listener = socket(AF_INET, SOCK_DGRAM, 0);
@@ -77,7 +77,7 @@ ReliableNode* create_node() {
         exit(1);
     }
     int reusePort = 1;
-    setsockopt(node->listener, SOL_SOCKET, SO_REUSEPORT, &reusePort, sizeof(reusePort));
+    setsockopt(node->listener, SOL_SOCKET, SO_REUSEPORT, (const char*)&reusePort, sizeof(reusePort));
 
     return node;
 }

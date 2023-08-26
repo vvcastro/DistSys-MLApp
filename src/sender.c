@@ -29,7 +29,7 @@ int main() {
         exit(1);
     }
     int broadcastEnable = 1;
-    setsockopt(sock, SOL_SOCKET, SO_BROADCAST, &broadcastEnable, sizeof(broadcastEnable));
+    setsockopt(sock, SOL_SOCKET, SO_BROADCAST, (const char*)&broadcastEnable, sizeof(broadcastEnable));
 
 
     // Set up the address structure for broadcast
