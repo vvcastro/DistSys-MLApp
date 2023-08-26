@@ -8,15 +8,17 @@ BUILD_DIR := build
 
 SRC := $(wildcard $(SRC_DIR)/*.c)
 OBJ := $(patsubst $(SRC_DIR)/%.c, $(OBJ_DIR)/%.o, $(SRC))
+OPS := -p
 
 ifeq ($(OS),Windows_NT)
     LIBS += -lws2_32
+	OPS := 
 endif
 
 all: directories sender receiver node
 
 directories:
-	mkdir $(BUILD_DIR) $(OBJ_DIR)
+	mkdir $(OPS) $(BUILD_DIR) $(OBJ_DIR)
 
 sender: $(OBJ_DIR)/sender.o $(OBJ_DIR)/network.o
 	$(CC) $(CFLAGS) -o $(BUILD_DIR)/sender $(OBJ_DIR)/sender.o $(OBJ_DIR)/network.o $(LIBS)
