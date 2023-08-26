@@ -76,8 +76,8 @@ ReliableNode* create_node() {
         close_node(node);
         exit(1);
     }
-    int reusePort = 1;
-    setsockopt(node->listener, SOL_SOCKET, SO_REUSEPORT, (const char*)&reusePort, sizeof(reusePort));
+    // int reusePort = 1;
+    // setsockopt(node->listener, SOL_SOCKET, SO_REUSEPORT, (const char*)&reusePort, sizeof(reusePort));
 
     return node;
 }

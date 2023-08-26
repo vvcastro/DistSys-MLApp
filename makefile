@@ -12,7 +12,7 @@ OBJ := $(patsubst $(SRC_DIR)/%.c, $(OBJ_DIR)/%.o, $(SRC))
 all: directories sender receiver node
 
 directories:
-	mkdir -p $(BUILD_DIR) $(OBJ_DIR)
+	mkdir $(BUILD_DIR) $(OBJ_DIR)
 
 sender: $(OBJ_DIR)/sender.o $(OBJ_DIR)/network.o
 	$(CC) $(CFLAGS) -o $(BUILD_DIR)/sender $(OBJ_DIR)/sender.o $(OBJ_DIR)/network.o $(LIBS)
