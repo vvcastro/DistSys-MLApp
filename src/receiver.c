@@ -42,8 +42,6 @@ int main() {
         WSACleanup();
         #endif
     }
-    int reusePort = 1;
-    setsockopt(sock, SOL_SOCKET, SO_REUSEPORT, (const char*)&reusePort, sizeof(reusePort));
 
     // Set up the address structure to bind to the broadcast port
     struct sockaddr_in addr;
