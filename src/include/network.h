@@ -13,10 +13,9 @@
 
 #include <pthread.h>
 
-
 // Define the IP address to work in
-#define IP_ADDRESS inet_addr("192.168.56.255")
-#define PORT 12360
+#define IP_ADDRESS inet_addr("10.0.0.255")
+#define PORT 4000
 
 // Define the relevant structs for the netwokr application
 #define MESSAGE_TYPE_NORMAL 0
