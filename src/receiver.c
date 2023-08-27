@@ -50,7 +50,7 @@ int main() {
     memset(&addr, 0, sizeof(addr));
     addr.sin_family = AF_INET;
     addr.sin_port = htons(PORT);
-    addr.sin_addr.s_addr = IP_ADDRESS;
+    addr.sin_addr.s_addr = INADDR_ANY;
 
     // Bind the socket to the broadcast port
     if (bind(sock, (struct sockaddr*)&addr, sizeof(addr)) < 0) {

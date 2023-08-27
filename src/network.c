@@ -94,7 +94,7 @@ void start_network_listening(ReliableNode* receiver) {
     memset(&listen_addr, 0, sizeof(listen_addr));
     listen_addr.sin_family = AF_INET;
     listen_addr.sin_port = htons(PORT);
-    listen_addr.sin_addr.s_addr = IP_ADDRESS;
+    listen_addr.sin_addr.s_addr = INADDR_ANY;
 
     if (bind(receiver->listener, (struct sockaddr*)&listen_addr, sizeof(listen_addr)) < 0) {
         perror("Binding error");
@@ -114,10 +114,11 @@ void* receive_messages(void* arg) {
     // Here we read a message from the socket, later this will
     // include the processing steps for the specific type of message.
     ReliableNode* receiver = (ReliableNode*)arg;
-    char encoded_message[MAX_MESSAGE_SIZE];
 
+    char encoded_message[MAX_MESSAGE_SIZE];
+    size_t msize = sizeof(encoded_message) - 1;
     while (1) {
-        ssize_t received_bytes = recvfrom(receiver->listener, encoded_message, sizeof(encoded_message), 0, NULL, NULL);
+        ssize_t received_bytes = recvfrom(receiver->listener, encoded_message, msize, 0, NULL, NULL);
         if (received_bytes < 0) {
             perror("Message receiving error");
             exit(1);
