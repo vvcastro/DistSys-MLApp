@@ -76,12 +76,6 @@ ReliableNode* create_node() {
         close_node(node);
         exit(1);
     }
-    int reuse = 1;
-    #ifdef _WIN32
-    setsockopt(node->listener, SOL_SOCKET, SO_REUSEADDR, (const char*)&reuse, sizeof(reuse));
-    #else
-    setsockopt(node->listener, SOL_SOCKET, SO_REUSEPORT, (const char*)&reuse, sizeof(reuse));
-    #endif
     return node;
 }
 
