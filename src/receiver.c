@@ -66,7 +66,6 @@ int main() {
     char message[MAX_MESSAGE_SIZE];
     while (1) {
         ssize_t received_bytes = recvfrom(sock, message, sizeof(message), 0, NULL, NULL);
-        printf("Bytes: %ld", received_bytes);
         if (received_bytes < 0) {
             perror("Message receiving error");
             close(sock);
