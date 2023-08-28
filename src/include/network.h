@@ -3,11 +3,11 @@
 #ifdef _WIN32
 
 #include <winsock2.h>
+#define INET_ADDRSTRLEN 16
 
 #elif defined(__unix__) || defined(__APPLE__)
 
 #include <arpa/inet.h>
-#define SOCKET_ERR -1
 
 #endif
 
