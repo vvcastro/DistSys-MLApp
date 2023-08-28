@@ -7,6 +7,8 @@
 #include <string.h>
 #include <unistd.h>
 
+// ----------> Messages functions
+
 Message* create_new_message(ReliableNode* sender, int type, char* content) {
     // Create a message object with all the relevant information
     // from the sender.
@@ -16,11 +18,8 @@ Message* create_new_message(ReliableNode* sender, int type, char* content) {
         exit(1);
     }
 
-    // First the sender info
-    message->sender_pid = sender->pid;
-    message->seq_number = sender->seq_number;
-
     // Message contents
+    message->seq_number = sender->seq_number;
     message->message_type = type;
     strncpy(message->content, content, MAX_CONTENT_LEN);
     return message;
@@ -30,16 +29,36 @@ char* encode_message(Message* message) {
     // Encode the message as a string with an specific format
     static char encoded[MAX_MESSAGE_SIZE];
     snprintf(
-        encoded, sizeof(encoded), "%d|%d|%d|%s",
-        message->sender_pid, message->seq_number,
+        encoded, sizeof(encoded), "%d|%d|%s", message->seq_number,
         message->message_type, message->content
     );
     return encoded;
 }
 
+Message* decode_message(char* encoded_message) {
+    // Decode the string message sent over the network
+    int seq_number, message_type;
+    char content[MAX_CONTENT_LEN];
+    sscanf(encoded_message, "%d|%d|%s", &seq_number, &message_type, content);
+
+    Message* message = (Message*)malloc(sizeof(Message));
+    if (message == NULL) {
+        perror("Memory allocation error");
+        exit(1);
+    }
+
+    // Message contents
+    message->seq_number = seq_number;
+    message->message_type = message_type;
+    strncpy(message->content, content, MAX_CONTENT_LEN);
+    return message;
+}
+
+
+// ----------> Node functions
+
 ReliableNode* create_node() {
-    // This functions create a ReliableNode class in the most default form
-    // the `pid` and `seq_number` or not yet defined.
+    // Initiates the ReliableNode struct
     ReliableNode* node = (ReliableNode*)malloc(sizeof(ReliableNode));
     if (node == NULL) {
         perror("Memory allocation error");
@@ -108,17 +127,29 @@ void* receive_messages(void* arg) {
     // Here we read a message from the socket, later this will
     // include the processing steps for the specific type of message.
     ReliableNode* receiver = (ReliableNode*)arg;
+    int listener = receiver->listener;
 
-    char encoded_message[MAX_MESSAGE_SIZE];
-    size_t msize = sizeof(encoded_message) - 1;
+    // Define the receiving message
+    char encoded_msg[MAX_MESSAGE_SIZE];
+    size_t msize = sizeof(encoded_msg) - 1;
+
     while (1) {
-        ssize_t received_bytes = recvfrom(receiver->listener, encoded_message, msize, 0, NULL, NULL);
+        struct sockaddr_in saddr;
+        socklen_t slen = sizeof(saddr);
+
+        // Receive the message
+        ssize_t received_bytes = recvfrom(listener, encoded_msg, msize, 0, (struct sockaddr*)&saddr, &slen);
         if (received_bytes < 0) {
             perror("Message receiving error");
             exit(1);
         }
-        encoded_message[MAX_MESSAGE_SIZE - 1] = '\0';
-        printf("Received message: %s\n", encoded_message);
+        encoded_msg[received_bytes] = '\0';
+        Message* message = decode_message(encoded_msg);
+
+        printf("-------------------\n");
+        printf("From: %u\n", saddr.sin_addr.s_addr);
+        printf(" - Message (%d): %s\n", message->message_type, message->content);
+        printf("-------------------\n");
     }
     return NULL;
 }
@@ -142,7 +173,7 @@ void send_message(ReliableNode* sender, Message* message) {
         close(sender->sender);
         exit(1);
     }
-    printf("Message sent: %s\n", encoded_message);
+    printf("(To %d) Message sent: %s\n", PORT, encoded_message);
 }
 
 void close_node(ReliableNode* node) {

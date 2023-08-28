@@ -25,12 +25,7 @@
 #define MAX_MESSAGE_SIZE 512
 
 typedef struct {
-
-    // info about the sender
-    int sender_pid;
     int seq_number;
-
-    // about the meaning on the message
     int message_type;
     char content[MAX_CONTENT_LEN];
 
@@ -52,9 +47,9 @@ typedef struct {
 // Creates a new Message struct with all the relevan information
 Message* create_new_message(ReliableNode* sender, int type, char* content);
 
-// Encodes <serialises> the message into a string containing all the relevant
-// information
+// To (de)serialise messages
 char* encode_message(Message* message);
+Message* decode_message(char* encoded_message);
 
 // Init the node binding the sockets to the port
 ReliableNode* create_node();
