@@ -151,11 +151,15 @@ void* receive_messages(void* arg) {
         Message* message = decode_message(encoded_msg);
 
         // Get the sender IP address
-        char sender[INET_ADDRSTRLEN];
-        inet_ntop(AF_INET, &(saddr.sin_addr), sender, INET_ADDRSTRLEN);
+        char sender_ip[INET_ADDRSTRLEN];
+        #ifdef _WIN32
+        strcpy(sender_ip, inet_ntoa(saddr.sin_addr));
+        #else
+        inet_ntop(AF_INET, &(saddr.sin_addr), sender_ip, INET_ADDRSTRLEN);
+        #endif
 
         printf("-------------------\n");
-        printf("From: %s\n", sender);
+        printf("From: %s\n", sender_ip);
         printf(" - Message (%d): %s\n", message->message_type, message->content);
         printf("-------------------\n");
     }
