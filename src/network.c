@@ -135,7 +135,11 @@ void* receive_messages(void* arg) {
 
     while (1) {
         struct sockaddr_in saddr;
+        #ifdef _WIN32
+        int slen = sizeof(saddr);
+        #else
         socklen_t slen = sizeof(saddr);
+        #endif
 
         // Receive the message
         ssize_t received_bytes = recvfrom(listener, encoded_msg, msize, 0, (struct sockaddr*)&saddr, &slen);
@@ -146,8 +150,12 @@ void* receive_messages(void* arg) {
         encoded_msg[received_bytes] = '\0';
         Message* message = decode_message(encoded_msg);
 
+        // Get the sender IP address
+        char sender[INET_ADDRSTRLEN];
+        inet_ntop(AF_INET, &(saddr.sin_addr), sender, INET_ADDRSTRLEN);
+
         printf("-------------------\n");
-        printf("From: %u\n", saddr.sin_addr.s_addr);
+        printf("From: %s\n", sender);
         printf(" - Message (%d): %s\n", message->message_type, message->content);
         printf("-------------------\n");
     }
