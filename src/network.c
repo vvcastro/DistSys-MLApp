@@ -54,7 +54,6 @@ Message* decode_message(char* encoded_message) {
     return message;
 }
 
-
 // ----------> Node functions
 
 ReliableNode* create_node() {

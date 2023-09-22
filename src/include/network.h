@@ -1,20 +1,10 @@
 #ifndef NETWORK_H
 
-#ifdef _WIN32
-
-#include <winsock2.h>
-#define INET_ADDRSTRLEN 16
-
-#elif defined(__unix__) || defined(__APPLE__)
-
 #include <arpa/inet.h>
-
-#endif
-
 #include <pthread.h>
 
 // Define the IP address to work in
-#define IP_ADDRESS inet_addr("10.0.0.255")
+#define IP_ADDRESS inet_addr("192.168.56.255")
 #define PORT 4000
 
 // Define the relevant structs for the netwokr application

@@ -14,9 +14,6 @@ void handleCtrlC(int signal) {
     if (sock >= 0) {
         close(sock);
     }
-    #ifdef _WIN32
-    WSACleanup();
-    #endif
     printf("\nExiting gracefully.\n");
     exit(signal);
 }
@@ -25,22 +22,10 @@ void handleCtrlC(int signal) {
 int main() {
     signal(SIGINT, handleCtrlC);
 
-    // Initialize Winsock for Windows
-    #ifdef _WIN32
-    WSADATA wsa;
-    if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0) {
-        perror("WSAStartup failed");
-        exit(1);
-    }
-    #endif
-
     // Create socket
     sock = socket(AF_INET, SOCK_DGRAM, 0);
     if (sock < 0) {
         perror("Socket creation error");
-        #ifdef _WIN32
-        WSACleanup();
-        #endif
     }
 
     // Set up the address structure to bind to the broadcast port
@@ -54,9 +39,6 @@ int main() {
     if (bind(sock, (struct sockaddr*)&addr, sizeof(addr)) < 0) {
         perror("Binding error");
         close(sock);
-        #ifdef _WIN32
-        WSACleanup();
-        #endif
         exit(1);
     }
     printf("Receiver node listening...\n");
@@ -69,17 +51,11 @@ int main() {
         if (received_bytes < 0) {
             perror("Message receiving error");
             close(sock);
-            #ifdef _WIN32
-            WSACleanup();
-            #endif
         }
         message[received_bytes] = '\0'; // Null-terminate the received message
         printf(" - Message: %s\n", message);
     }
 
     close(sock);
-    #ifdef _WIN32
-    WSACleanup();
-    #endif
     return 0;
 }
