@@ -1,5 +1,6 @@
 #include "include/comms.hpp"
 #include "include/node.hpp"
+#include <algorithm>
 
 // Init the class structure. Gets the IP from execution.
 Node::Node(std::string networkInt) {
