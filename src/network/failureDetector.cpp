@@ -1,5 +1,6 @@
 #include "include/failureDetector.hpp"
 #include "comms.hpp"
+#include <algorithm>
 #include <vector>
 #include <map>
 
