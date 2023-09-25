@@ -25,9 +25,9 @@ Message Message::decodeToMessage(std::string encodedMessage) {
     std::getline(stream, strType, ')');
     stream.ignore(7);
     std::getline(stream, senderId, '|');
-    stream.ignore(7);
+    stream.ignore(6);
     std::getline(stream, msgData, '|');
-    stream.ignore(8);
+    stream.ignore(7);
     std::getline(stream, vclock, '|');
     std::cout << "Decrypt:" << strType << " | " << senderId << " | " << msgData << std::endl;
 
