@@ -62,7 +62,10 @@ void FailureDetector::handleBeatMessage(RecvMessage recvMessage) {
     if (pos == membersTimers.end()) { return; };
     if (maxPos == membersMaxWait.end()) { return; };
     currentTimeOut = pos->second;
-    maxTimeOut = pos->second;
+    maxTimeOut = maxPos->second;
+
+    std::cout << "Current TimeOut:" << std::to_string(currentTimeOut) << std::endl;
+    std::cout << "Max TimeOut:" << std::to_string(maxTimeOut) << std::endl;
 
     // First BEAT from Node
     if (currentTimeOut == -1) {

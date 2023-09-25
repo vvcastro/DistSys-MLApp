@@ -111,13 +111,14 @@ void ReliableLink::receivingChannel() {
 
 // Performs the preprocessing of the message depending on the type
 void ReliableLink::handleMessage(RecvMessage recvMessage) {
-    recvMessage.displayMessage();
     switch (recvMessage.message.getType()) {
         case DATA:
+            recvMessage.displayMessage();
             handleDataMessage(recvMessage);
             return;
 
         case ACK:
+            recvMessage.displayMessage();
             handleACKMessage(recvMessage);
             return;
 
