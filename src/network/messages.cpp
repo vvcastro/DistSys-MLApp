@@ -21,15 +21,15 @@ Message Message::decodeToMessage(std::string encodedMessage) {
 
     // Parse the string
     std::string strType, senderId, msgData, vclock;
-    stream.ignore(2);
+    stream.ignore(1);
     std::getline(stream, strType, ')');
-    stream.ignore(9);
+    stream.ignore(7);
     std::getline(stream, senderId, '|');
     stream.ignore(7);
     std::getline(stream, msgData, '|');
     stream.ignore(8);
     std::getline(stream, vclock, '|');
-    std::cout << "Decrypt:" << strType << " | " << senderId << std::endl;
+    std::cout << "Decrypt:" << strType << " | " << senderId << " | " << msgData << std::endl;
 
     // Re-construct the message
     MessageType msgType = stringToType(strType);
