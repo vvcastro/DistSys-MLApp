@@ -49,9 +49,18 @@ void Node::deliverMessage(RecvMessage recvMessage) {
 
 // This is the manangement of (suspected) crashed elements
 void Node::alertSuspicious(std::string memberAddress) {
+    std::cout << RED << "SYS: " << memberAddress << " has crashed!";
+    std::cout << RESET << std::endl;
 
-    // For now we just print that the node crashed
-    std::cout << "A node has crashed" << std::endl;
+    // Remove from detector
+    std::lock_guard<std::mutex> lock(groupLock);
+    this->detector->removeMember(memberAddress);
+
+    // Remove from set of correct nodes
+    std::vector<std::string>::iterator pos = std::find(
+        correctNodes.begin(), correctNodes.end(), memberAddress
+    );
+    correctNodes.erase(pos);
 }
 
 // -------- JUST SOME UTIL FUNCTIONS
