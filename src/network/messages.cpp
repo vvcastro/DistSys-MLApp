@@ -31,7 +31,7 @@ Message Message::decodeToMessage(std::string encodedMessage) {
     std::getline(stream, vclock, '|');
 
     // Re-construct the message
-    MessageType msgType = static_cast<MessageType>(std::stoi(strType));
+    MessageType msgType = stringToType(strType);
     return Message(senderId, msgType, msgData);
 }
 
@@ -96,4 +96,21 @@ std::string getTypeString(MessageType type) {
         default:
             return "";
     }
+}
+
+MessageType stringToType(const std::string typeName) {
+
+    // Define an standard mapping
+    std::unordered_map<std::string, MessageType> typeMaps = {
+        {"DATA", DATA},
+        {"ACK", ACK},
+        {"BEAT", BEAT}
+    };
+
+    // Find the matching values
+    auto it = typeMaps.find(typeName);
+    if (it != typeMaps.end()) {
+        return it->second;
+    }
+    return INVALID;
 }

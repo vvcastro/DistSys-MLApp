@@ -8,6 +8,7 @@ enum MessageType {
     DATA,
     ACK,
     BEAT,
+    INVALID,
 };
 
 // Contains all the data that will be transmited over the network
@@ -59,5 +60,6 @@ class SentMessage {
     int reCounter;
 };
 
-// A function for enum
+// ----------- AUX functions
 std::string getTypeString(MessageType type);
+MessageType stringToType(const std::string typeName);
