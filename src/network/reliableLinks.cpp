@@ -141,6 +141,8 @@ void ReliableLink::handleDataMessage(RecvMessage recvMesage) {
 
     // Adds the message to the list of received and runs the delivery
     if (!wasReceived) {
+        std::string messageStr = recvMesage.message.encodeToString();
+        std::cout << GREEN << ">In: " << messageStr << RESET << std::endl;
         this->recvMessages.push_back(recvMesage);
         this->deliveryMethod(recvMesage);
     }
