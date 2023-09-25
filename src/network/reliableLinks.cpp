@@ -40,13 +40,14 @@ void ReliableLink::sendMessage(std::string toAddress, Message message, bool rese
     std::string encodedMessage = message.encodeToString();
     sendUDPMessage(sendSocket, toAddress, encodedMessage);
 
+    if (resending) { return; }
+    std::cout << "Sending || <" << encodedMessage << ">" << std::endl;
+
     // (2) If we are sending a DATA message, add it to waiting messages
     if ((message.getType() == DATA) && (!resending)) {
-        std::cout << "Sending || <" << encodedMessage << ">" << std::endl;
         std::lock_guard<std::mutex> lock(waitingLock);
         SentMessage waitingMessage = SentMessage(toAddress, message);
         waitingMessages.push_back(waitingMessage);
-        std::cout << waitingMessages.size() << std::endl;
     }
 }
 
@@ -131,7 +132,6 @@ void ReliableLink::handleDataMessage(RecvMessage recvMesage) {
 
     // (1) Send ACK (even on repetition)
     Message respondData = Message::getRespondMessage(recvMesage.message);
-    std::cout << " - Sent || <" << respondData.encodeToString() << ">" << std::endl;
     sendMessage(recvMesage.fromAddress, respondData, false);
 
     // (2) Check if it should be received
@@ -146,8 +146,6 @@ void ReliableLink::handleDataMessage(RecvMessage recvMesage) {
     // Adds the message to the list of received and runs the delivery
     if (!wasReceived) {
         this->recvMessages.push_back(recvMesage);
-        std::cout << " - Adding message to received || New size: ";
-        std::cout << recvMessages.size() << std::endl;
         this->deliveryMethod(recvMesage);
     }
 }
