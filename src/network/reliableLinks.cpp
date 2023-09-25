@@ -1,4 +1,5 @@
 #include "include/reliableLinks.hpp"
+#include <functional>
 #include "functional"
 
 // Standard constructor for the class
