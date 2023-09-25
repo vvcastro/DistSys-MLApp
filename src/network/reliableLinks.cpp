@@ -28,6 +28,8 @@ bool ReliableLink::isRunning() {
 void ReliableLink::stopLink() {
     std::lock_guard<std::mutex> lock(statusLock);
     status = false;
+    close(sendSocket);
+    close(recvSocket);
 }
 
 // Send a message over the network to an specific toAddr;

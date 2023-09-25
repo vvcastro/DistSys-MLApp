@@ -26,7 +26,7 @@ void sendUDPMessage(int socket, std::string toAddress, std::string encodedMessag
 
     // Sets up the socket for sending the message
     struct sockaddr_in destAddr;
-    std::memset(&destAddr, 0, sizeof(destAddr));
+    memset(&destAddr, 0, sizeof(destAddr));
     destAddr.sin_addr.s_addr = inet_addr(toAddress.c_str());
     destAddr.sin_port = htons(PORT);
     destAddr.sin_family = AF_INET;
@@ -47,15 +47,16 @@ void sendUDPMessage(int socket, std::string toAddress, std::string encodedMessag
 void setupReceiverSocket(int recvSocket) {
 
     struct sockaddr_in recvAddr;
-    std::memset(&recvAddr, 0, sizeof(recvAddr));
+    memset(&recvAddr, 0, sizeof(recvAddr));
     recvAddr.sin_family = AF_INET;
     recvAddr.sin_port = htons(PORT);
     recvAddr.sin_addr.s_addr = INADDR_ANY;
 
     // Bind the socket to the broadcast port
     if (bind(recvSocket, (struct sockaddr*)&recvAddr, sizeof(recvAddr)) < 0) {
+        perror("Binding error: couldn't setup the socket!");
         close(recvSocket);
-        throw std::runtime_error("Binding error: couldn't setup the socket!");
+        exit(1);
     }
 };
 
@@ -68,7 +69,8 @@ std::string getIPv4Address(const std::string& interfaceName) {
     void* tmpAddrPtr = nullptr;
 
     if (getifaddrs(&ifAddrStruct) == -1) {
-        throw std::runtime_error("Could not resolve IP address!");
+        perror("Could not resolve IP address!");
+        exit(1);
     }
 
     // Iterate over the network interfaces
@@ -78,7 +80,7 @@ std::string getIPv4Address(const std::string& interfaceName) {
         }
 
         if (ifa->ifa_addr->sa_family == AF_INET) {
-            if (strcmp(ifa->ifa_name, interfaceName.c_str()) == 0) {
+            if (std::strcmp(ifa->ifa_name, interfaceName.c_str()) == 0) {
                 tmpAddrPtr = &((struct sockaddr_in*)ifa->ifa_addr)->sin_addr;
                 char addressBuffer[INET_ADDRSTRLEN];
                 inet_ntop(AF_INET, tmpAddrPtr, addressBuffer, INET_ADDRSTRLEN);
