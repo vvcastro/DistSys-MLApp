@@ -145,9 +145,9 @@ void ReliableLink::handleDataMessage(RecvMessage recvMesage) {
 
     // Adds the message to the list of received and runs the delivery
     if (!wasReceived) {
+        this->recvMessages.push_back(recvMesage);
         std::cout << " - Adding message to received || New size: ";
         std::cout << recvMessages.size() << std::endl;
-        this->recvMessages.push_back(recvMesage);
         this->deliveryMethod(recvMesage);
     }
 }
