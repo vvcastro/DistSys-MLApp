@@ -100,8 +100,8 @@ void ReliableLink::receivingChannel() {
         std::string fromAddress(senderIP);
 
         // Decode it into a message class structure
-        std::cout << " - Recv || <" << encodedMessage << ">" << std::endl;
         Message decodedMessage = Message::decodeToMessage(encodedMessage);
+        std::cout << " - Recv || <" << decodedMessage.encodeToString() << ">" << std::endl;
         RecvMessage recvMessage = RecvMessage(fromAddress, decodedMessage);
         handleMessage(recvMessage);
     }
