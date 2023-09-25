@@ -1,5 +1,5 @@
 CCX := g++
-CXXLAGS := -std=c++11 -pthread -Isrc -Isrc/network/include -Isrc/app/include
+CXXFLAGS := -std=c++11 -pthread -Isrc -Isrc/network/include -Isrc/app/include
 
 SRC_DIR := src
 OBJ_DIR := obj
@@ -16,7 +16,7 @@ $(BUILD_DIR)/main: $(OBJS)
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
 	@mkdir -p $(dir $@)
-	$(CCX) $(CXXLAGS) -c $< -o $@
+	$(CCX) $(CXXFLAGS) -c $< -o $@
 
 clean:
 	rm -rf $(OBJ_DIR) $(BUILD_DIR)
