@@ -2,8 +2,7 @@
 #include "functional"
 
 // Standard constructor for the class
-ReliableLink::ReliableLink(std::string nodeId, std::function<void(RecvMessage)> deliveryMethod) {
-    this->nodeId = nodeId;
+ReliableLink::ReliableLink(std::function<void(RecvMessage)> deliveryMethod) {
     this->deliveryMethod = deliveryMethod;
     this->status = true;
 
@@ -41,12 +40,12 @@ void ReliableLink::sendMessage(std::string toAddress, Message message, bool rese
     sendUDPMessage(sendSocket, toAddress, encodedMessage);
 
     if (resending) { return; }
-    std::cout << MAGENTA << "Out: " << encodedMessage << RESET << std::endl;
+    SentMessage waitingMessage(toAddress, message);
+    waitingMessage.displayMessage();
 
     // (2) If we are sending a DATA message, add it to waiting messages
     if ((message.getType() == DATA) && (!resending)) {
         std::lock_guard<std::mutex> lock(waitingLock);
-        SentMessage waitingMessage = SentMessage(toAddress, message);
         waitingMessages.push_back(waitingMessage);
     }
 }
@@ -106,15 +105,15 @@ void ReliableLink::receivingChannel() {
 }
 
 // Performs the preprocessing of the message depending on the type
-void ReliableLink::handleMessage(RecvMessage RecvMessage) {
-    Message messageData = RecvMessage.message;
-    switch (messageData.getType()) {
+void ReliableLink::handleMessage(RecvMessage recvMessage) {
+    recvMessage.displayMessage();
+    switch (recvMessage.message.getType()) {
         case DATA:
-            handleDataMessage(RecvMessage);
+            handleDataMessage(recvMessage);
             return;
 
         case ACK:
-            handleACKMessage(RecvMessage);
+            handleACKMessage(recvMessage);
             return;
 
         default:
@@ -142,7 +141,6 @@ void ReliableLink::handleDataMessage(RecvMessage recvMesage) {
     // Adds the message to the list of received and runs the delivery
     if (!wasReceived) {
         std::string messageStr = recvMesage.message.encodeToString();
-        std::cout << GREEN << ">In: " << messageStr << RESET << std::endl;
         this->recvMessages.push_back(recvMesage);
         this->deliveryMethod(recvMesage);
     }
@@ -172,7 +170,6 @@ void ReliableLink::handleACKMessage(RecvMessage recvMesage) {
 
     // (3) Remove the message from the current list using the lock
     std::string messageStr = recvMesage.message.encodeToString();
-    std::cout << GREEN << ">In: " << messageStr << RESET << std::endl;
     std::lock_guard<std::mutex> lock(waitingLock);
     waitingMessages.erase(waitingMessages.begin() + indexToRemove);
 }

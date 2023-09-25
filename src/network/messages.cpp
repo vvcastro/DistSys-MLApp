@@ -11,7 +11,7 @@ Message::Message(std::string sender, MessageType type, std::string data) {
 std::string Message::encodeToString() {
     std::string encoded;
     encoded += "(" + getTypeString(type) + ")";
-    encoded += "|From: " + sender + "|Data: " + data + "|Clock: -|";
+    encoded += "|" + sender + "|" + data + "|-|";
     return encoded;
 }
 
@@ -23,11 +23,9 @@ Message Message::decodeToMessage(std::string encodedMessage) {
     std::string strType, senderId, msgData, vclock;
     stream.ignore(1);
     std::getline(stream, strType, ')');
-    stream.ignore(7);
+    stream.ignore(1);
     std::getline(stream, senderId, '|');
-    stream.ignore(6);
     std::getline(stream, msgData, '|');
-    stream.ignore(7);
     std::getline(stream, vclock, '|');
 
     // Re-construct the message
@@ -55,9 +53,34 @@ RecvMessage::RecvMessage(std::string fromAddress, Message message) {
     this->message = message;
 }
 
+// Prints the SentMessage
+void SentMessage::displayMessage() {
+    std::string messageStr = this->message.encodeToString();
+    std::cout << MAGENTA << "<To: " << this->toAddress << " {";
+    std::cout << messageStr << "}" << RESET << std::endl;
+}
+
+// Prints the RecvMessage
+void RecvMessage::displayMessage() {
+    std::string messageStr = this->message.encodeToString();
+    std::cout << GREEN << ">From: " << this->fromAddress << " {";
+    std::cout << messageStr << "}" << RESET << std::endl;
+}
+
+// Check if a message is a response (==data) and sender and receiver are swaped.
+bool SentMessage::isResponse(RecvMessage other) {
+    bool msg_eq = (message == other.message);
+    return (toAddress == other.fromAddress) && msg_eq;
+}
+
 // Set the VectorClocks from the sender. Note: will be done under a lock.
 void Message::setClock(std::vector<std::pair<std::string, int> > vclock) {
     this->vclock = vclock;
+}
+
+// Add a counter for a reSent message, just to keep track of stats
+void SentMessage::addCounter() {
+    ++reCounter;
 }
 
 // Overrides the default == operator
@@ -73,16 +96,6 @@ bool RecvMessage::operator==(const RecvMessage& other) {
     return (fromAddress == other.fromAddress) && (message == other.message);
 }
 
-// Check if a message is a response (==data) and sender and receiver are swaped.
-bool SentMessage::isResponse(RecvMessage other) {
-    bool msg_eq = (message == other.message);
-    return (toAddress == other.fromAddress) && msg_eq;
-}
-
-// Add a counter for a reSent message, just to keep track of stats
-void SentMessage::addCounter() {
-    ++reCounter;
-}
 
 // ----------- AUX functions
 std::string getTypeString(MessageType type) {

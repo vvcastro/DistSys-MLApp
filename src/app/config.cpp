@@ -3,7 +3,7 @@
 
 // Check args from command execution
 std::vector<std::string> getArgs(int argc, char* argv[]) {
-    const char* base[] = { "--node", "--interface" };
+    const char* base[] = { "--interface" };
     std::vector<std::string> names(base, std::end(base));
 
     // Check if the arguments are expected

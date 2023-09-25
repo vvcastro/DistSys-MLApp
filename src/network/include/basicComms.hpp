@@ -3,8 +3,8 @@
 #include <iostream>
 #include <chrono>
 
-
-// --------- Define relevant variables
+// Initial interaction with processes
+#define PROCESS_POOL {"192.168.56.4", "192.168.56.1"}
 
 // Default PORT for communications
 #define PORT 4000

@@ -5,7 +5,6 @@
 #include <string>
 
 std::shared_ptr<Node> node;
-std::string peerAddress("192.168.56.4");
 
 // Exit code and close active instances
 void handleCtrlC(int signal) {
@@ -19,13 +18,13 @@ int main(int argc, char* argv[]) {
     std::vector<std::string> execArgs = getArgs(argc, argv);
 
     // Get the nodeId and networkInterface to connect to.
-    node = std::make_shared<Node>(execArgs[0], execArgs[1]);
+    node = std::make_shared<Node>(execArgs[0]);
     node->showConnectionData();
 
     std::string userInput;
     std::cout << "Enter a message to send.\n> ";
     std::cin >> userInput;
-    node->sendMessage(peerAddress, userInput);
+    node->broadcastMessage(userInput);
 
     while (true) {
         std::this_thread::sleep_for(std::chrono::seconds(1));

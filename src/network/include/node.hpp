@@ -3,21 +3,23 @@
 
 class Node {
     public:
-    Node(std::string nodeId, std::string networkInt);
+    Node(std::string networkInt);
     void showConnectionData();
-
-    void sendMessage(std::string toAddress, std::string data);
     void closeConnection();
+
+    // Networking utilities
+    void broadcastMessage(std::string data);
 
     // Structure will be updated
     std::vector<RecvMessage> deliveredMessages;
     void deliverMessage(RecvMessage message);
 
     private:
-
-    std::string nodeId;
     std::string nodeAddress;
     std::shared_ptr<ReliableLink> connection;
+
+    // Aware of the GroupView
+    std::vector<std::string> correctNodes;
 
     // For synchronisation
     std::vector<std::pair<std::string, int>> vectorClocks;

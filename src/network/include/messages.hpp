@@ -1,10 +1,10 @@
+#include "basicComms.hpp"
 #include <unordered_map>
 #include <iostream>
 #include <sstream>
 #include <utility>
 #include <vector>
 #include <string>
-
 
 enum MessageType {
     DATA,
@@ -44,9 +44,11 @@ class Message {
 class RecvMessage {
     public:
     RecvMessage(std::string fromAddress, Message message);
+    bool operator==(const RecvMessage& other);
+    void displayMessage();
+
     std::string fromAddress;
     Message message;
-    bool operator==(const RecvMessage& other);
 };
 
 // Encaptulation of a sent message, it ease the management
@@ -55,6 +57,7 @@ class SentMessage {
     public:
     SentMessage(std::string toAddress, Message message);
     bool isResponse(RecvMessage other);
+    void displayMessage();
     void addCounter();
 
     std::string toAddress;

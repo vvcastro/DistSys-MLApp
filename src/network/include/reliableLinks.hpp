@@ -1,4 +1,3 @@
-#include "basicComms.hpp"
 #include "messages.hpp"
 #include <functional>
 #include <thread>
@@ -8,14 +7,13 @@
 // processes are NOT-LOST.
 class ReliableLink {
     public:
-    ReliableLink(std::string nodeId, std::function<void(RecvMessage)> deliveryMethod);
+    ReliableLink(std::function<void(RecvMessage)> deliveryMethod);
     void sendMessage(std::string toAddress, Message message, bool resending);
     bool isRunning();
     void stopLink();
 
     private:
     bool status;
-    std::string nodeId;
     std::vector<SentMessage> waitingMessages;
     std::vector<RecvMessage> recvMessages;
 
