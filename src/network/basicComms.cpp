@@ -1,6 +1,7 @@
 #include "include/basicComms.hpp"
 #include <netinet/in.h>
 #include <ifaddrs.h>
+#include <string.h>
 #include <string>
 
 int defineSenderSocket() {
@@ -80,7 +81,7 @@ std::string getIPv4Address(const std::string& interfaceName) {
         }
 
         if (ifa->ifa_addr->sa_family == AF_INET) {
-            if (std::strcmp(ifa->ifa_name, interfaceName.c_str()) == 0) {
+            if (strcmp(ifa->ifa_name, interfaceName.c_str()) == 0) {
                 tmpAddrPtr = &((struct sockaddr_in*)ifa->ifa_addr)->sin_addr;
                 char addressBuffer[INET_ADDRSTRLEN];
                 inet_ntop(AF_INET, tmpAddrPtr, addressBuffer, INET_ADDRSTRLEN);
