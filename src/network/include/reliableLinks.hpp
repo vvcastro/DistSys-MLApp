@@ -17,7 +17,7 @@ class ReliableLink {
     bool status;
     std::string nodeId;
     std::vector<SentMessage> waitingMessages;
-    std::vector<RecvMessage> RecvMessages;
+    std::vector<RecvMessage> recvMessages;
 
     // This is the upper connection, delivers the message asynchrnously
     std::function<void(RecvMessage)> deliveryMethod;

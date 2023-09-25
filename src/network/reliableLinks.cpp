@@ -46,6 +46,7 @@ void ReliableLink::sendMessage(std::string toAddress, Message message, bool rese
         std::lock_guard<std::mutex> lock(waitingLock);
         SentMessage waitingMessage = SentMessage(toAddress, message);
         waitingMessages.push_back(waitingMessage);
+        std::cout << waitingMessages.size() << std::endl;
     }
 }
 
@@ -135,8 +136,8 @@ void ReliableLink::handleDataMessage(RecvMessage recvMesage) {
 
     // (2) Check if it should be received
     bool wasReceived = false;
-    for (size_t i = 0; i < RecvMessages.size(); i++) {
-        if (RecvMessages[i] == recvMesage) {
+    for (size_t i = 0; i < recvMessages.size(); i++) {
+        if (recvMessages[i] == recvMesage) {
             wasReceived = true;
             return;
         }
@@ -144,7 +145,9 @@ void ReliableLink::handleDataMessage(RecvMessage recvMesage) {
 
     // Adds the message to the list of received and runs the delivery
     if (!wasReceived) {
-        this->RecvMessages.push_back(recvMesage);
+        std::cout << " - Adding message to received || New size: ";
+        std::cout << recvMessages.size() << std::endl;
+        this->recvMessages.push_back(recvMesage);
         this->deliveryMethod(recvMesage);
     }
 }
@@ -152,7 +155,6 @@ void ReliableLink::handleDataMessage(RecvMessage recvMesage) {
 // If we received the ACK message we can remove the message
 // from the waiting list.
 void ReliableLink::handleACKMessage(RecvMessage receivedMesage) {
-    std::cout << "Received an ACK message!" << std::endl;
 
     // (1) Lock the waitingList to copy the messages to check
     waitingLock.lock();
