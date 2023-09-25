@@ -1,16 +1,21 @@
 #include "include/reliableLinks.hpp"
+#include "comms.hpp"
 #include "functional"
 
 // Standard constructor for the class
-ReliableLink::ReliableLink(std::function<void(RecvMessage)> deliveryMethod) {
+ReliableLink::ReliableLink(
+    std::function<void(RecvMessage)> deliveryMethod,
+    std::function<void(RecvMessage)> beatManagement
+) {
     this->deliveryMethod = deliveryMethod;
-    this->status = true;
+    this->beatManagement = beatManagement;
 
     // define sockets to use
     sendSocket = defineSenderSocket();
     recvSocket = defineReceiverSocket();
 
     // start listening thread
+    this->status = true;
     std::thread listeningThread(std::bind(&ReliableLink::receivingChannel, this));
     std::thread stubbornThread(std::bind(&ReliableLink::stubbornResending, this));
     listeningThread.detach();
@@ -116,6 +121,10 @@ void ReliableLink::handleMessage(RecvMessage recvMessage) {
             handleACKMessage(recvMessage);
             return;
 
+        case BEAT:
+            beatManagement(recvMessage);
+            return;
+
         default:
             // Any other type of message is not manage by this class
             return;
@@ -146,8 +155,7 @@ void ReliableLink::handleDataMessage(RecvMessage recvMesage) {
     }
 }
 
-// If we received the ACK message we can remove the message
-// from the waiting list.
+// When receive an ACK message remove the message from the waiting list.
 void ReliableLink::handleACKMessage(RecvMessage recvMesage) {
 
     // (1) Lock the waitingList to copy the messages to check
@@ -173,4 +181,3 @@ void ReliableLink::handleACKMessage(RecvMessage recvMesage) {
     std::lock_guard<std::mutex> lock(waitingLock);
     waitingMessages.erase(waitingMessages.begin() + indexToRemove);
 }
-

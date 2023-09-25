@@ -7,8 +7,13 @@
 // processes are NOT-LOST.
 class ReliableLink {
     public:
-    ReliableLink(std::function<void(RecvMessage)> deliveryMethod);
+    ReliableLink(
+        std::function<void(RecvMessage)> deliveryMethod,
+        std::function<void(RecvMessage)> beatManagement
+    );
     void sendMessage(std::string toAddress, Message message, bool resending);
+
+    // Status management
     bool isRunning();
     void stopLink();
 
@@ -17,8 +22,9 @@ class ReliableLink {
     std::vector<SentMessage> waitingMessages;
     std::vector<RecvMessage> recvMessages;
 
-    // This is the upper connection, delivers the message asynchrnously
+    // These are callbacks to handle events at an upper level
     std::function<void(RecvMessage)> deliveryMethod;
+    std::function<void(RecvMessage)> beatManagement;
 
     // define the sockets for communication
     int sendSocket;
@@ -28,6 +34,7 @@ class ReliableLink {
     std::mutex statusLock;
     std::mutex waitingLock;
 
+    // handle different types of messages
     void handleMessage(RecvMessage RecvMessage);
     void handleDataMessage(RecvMessage RecvMessage);
     void handleACKMessage(RecvMessage RecvMessage);

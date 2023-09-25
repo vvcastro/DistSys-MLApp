@@ -1,34 +1,30 @@
+#include "include/comms.hpp"
 #include "include/node.hpp"
 
 // Init the class structure. Gets the IP from execution.
 Node::Node(std::string networkInt) {
     this->nodeAddress = getIPv4Address(networkInt);
-
-    // Define the POOL of processes
     this->correctNodes = PROCESS_POOL;
 
+    // Start Failure detector
+    std::function<void(std::string)> suspectCallback = [this](std::string address) {this->alertSuspicious(address);};
+    this->detector = std::make_shared<FailureDetector>(nodeAddress, this->correctNodes, suspectCallback);
+
     // Start the connection
-    std::function<void(RecvMessage)> callback = [this](RecvMessage msg) {this->deliverMessage(msg);};
-    this->connection = std::make_shared<ReliableLink>(callback);
+    std::function<void(RecvMessage)> deliverCallback = [this](RecvMessage msg) {this->deliverMessage(msg);};
+    std::function<void(RecvMessage)> beatCallback = [this](RecvMessage msg) {this->detector->handleBeatMessage(msg);};
+    this->connection = std::make_shared<ReliableLink>(deliverCallback, beatCallback);
 }
 
 // Stops the connection at the networking part of the class
 void Node::closeConnection() {
     connection->stopLink();
-}
-
-// Prints the available connection data used by the Node
-void Node::showConnectionData() {
-    std::string sep(30, '=');
-    std::cout << sep << std::endl;
-    std::cout << "Node information:" << std::endl;
-    std::cout << " - Address: " << nodeAddress << std::endl;
-    std::cout << sep << std::endl;
+    detector->stopDetector();
 }
 
 // Creates a message and uses the underlying connection to transmit it
 void Node::broadcastMessage(std::string data) {
-    Message toSendMessage = Message(nodeAddress, DATA, data);
+    Message toSendMessage(this->nodeAddress, DATA, data);
     toSendMessage.setClock(this->vectorClocks);
 
     // Broadcast the message
@@ -49,4 +45,22 @@ void Node::updateVectorClock() {
 void Node::deliverMessage(RecvMessage recvMessage) {
     std::lock_guard<std::mutex> lock(deliveryLock);
     this->deliveredMessages.push_back(recvMessage);
+}
+
+// This is the manangement of (suspected) crashed elements
+void Node::alertSuspicious(std::string memberAddress) {
+
+    // For now we just print that the node crashed
+    std::cout << "A node has crashed" << std::endl;
+}
+
+// -------- JUST SOME UTIL FUNCTIONS
+
+// Prints the available connection data used by the Node
+void Node::showConnectionData() {
+    std::string sep(30, '=');
+    std::cout << sep << std::endl;
+    std::cout << "Node information:" << std::endl;
+    std::cout << " - Address: " << nodeAddress << std::endl;
+    std::cout << sep << std::endl;
 }

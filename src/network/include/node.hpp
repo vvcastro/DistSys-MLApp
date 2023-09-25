@@ -1,3 +1,4 @@
+#include "failureDetector.hpp"
 #include "reliableLinks.hpp"
 #include <memory>
 
@@ -6,6 +7,9 @@ class Node {
     Node(std::string networkInt);
     void showConnectionData();
     void closeConnection();
+
+    // Group Managements
+    void alertSuspicious(std::string memberAddress);
 
     // Networking utilities
     void broadcastMessage(std::string data);
@@ -17,6 +21,7 @@ class Node {
     private:
     std::string nodeAddress;
     std::shared_ptr<ReliableLink> connection;
+    std::shared_ptr<FailureDetector> detector;
 
     // Aware of the GroupView
     std::vector<std::string> correctNodes;
