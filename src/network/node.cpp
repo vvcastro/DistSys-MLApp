@@ -50,7 +50,7 @@ void Node::deliverMessage(RecvMessage recvMessage) {
 
 // This is the manangement of (suspected) crashed elements
 void Node::alertSuspicious(std::string memberAddress) {
-    std::cout << RED << "SYS: " << memberAddress << " has crashed!";
+    std::cout << RED << "<< SYS: " << memberAddress << " has crashed! >>";
     std::cout << RESET << std::endl;
 
     // Remove from detector
