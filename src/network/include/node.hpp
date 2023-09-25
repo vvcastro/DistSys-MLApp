@@ -24,6 +24,7 @@ class Node {
     std::shared_ptr<FailureDetector> detector;
 
     // Aware of the GroupView
+    std::mutex groupLock;
     std::vector<std::string> correctNodes;
 
     // For synchronisation

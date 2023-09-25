@@ -43,6 +43,7 @@ bool FailureDetector::isRunning() {
 void FailureDetector::stopDetector() {
     std::lock_guard<std::mutex> lock(statusLock);
     status = false;
+    close(sendSocket);
 }
 
 // When a new BEAT message arrives, update the timeout
@@ -104,6 +105,7 @@ void FailureDetector::inspectBeatings() {
         std::lock_guard<std::mutex> lock(membersLock);
         std::map<std::string, float>::iterator pos;
         for (pos = membersTimers.begin(); pos != membersTimers.end(); ++pos) {
+            if (pos->second == -1) { continue; }
             pos->second -= samplingTime;
 
             // If the timeout hasn't expired we are fine
