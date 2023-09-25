@@ -41,7 +41,7 @@ void ReliableLink::sendMessage(std::string toAddress, Message message, bool rese
     sendUDPMessage(sendSocket, toAddress, encodedMessage);
 
     if (resending) { return; }
-    std::cout << "Sending || <" << encodedMessage << ">" << std::endl;
+    std::cout << MAGENTA << "Out: " << encodedMessage << RESET << std::endl;
 
     // (2) If we are sending a DATA message, add it to waiting messages
     if ((message.getType() == DATA) && (!resending)) {
@@ -69,9 +69,6 @@ void ReliableLink::stubbornResending() {
         for (size_t i = 0; i < toResendMessages.size(); ++i) {
             SentMessage msgToResend = toResendMessages[i];
             sendMessage(msgToResend.toAddress, msgToResend.message, true);
-
-            std::cout << "Re-send || <" << msgToResend.message.encodeToString() << "> || ";
-            std::cout << "(I: " << std::to_string(msgToResend.reCounter) << ")" << std::endl;
         }
     }
 }
@@ -103,7 +100,6 @@ void ReliableLink::receivingChannel() {
 
         // Decode it into a message class structure
         Message decodedMessage = Message::decodeToMessage(encodedMessage);
-        std::cout << " - Recv || <" << decodedMessage.encodeToString() << ">" << std::endl;
         RecvMessage recvMessage = RecvMessage(fromAddress, decodedMessage);
         handleMessage(recvMessage);
     }
@@ -152,7 +148,7 @@ void ReliableLink::handleDataMessage(RecvMessage recvMesage) {
 
 // If we received the ACK message we can remove the message
 // from the waiting list.
-void ReliableLink::handleACKMessage(RecvMessage receivedMesage) {
+void ReliableLink::handleACKMessage(RecvMessage recvMesage) {
 
     // (1) Lock the waitingList to copy the messages to check
     waitingLock.lock();
@@ -164,17 +160,18 @@ void ReliableLink::handleACKMessage(RecvMessage receivedMesage) {
     bool isWaiting = false;
     for (size_t i = 0; i < waitingMessages.size(); i++) {
         SentMessage currentMessage = waitingMessages[i];
-        if (currentMessage.isResponse(receivedMesage)) {
+        if (currentMessage.isResponse(recvMesage)) {
             isWaiting = true;
             indexToRemove = i;
             break;
         }
     }
+    if (!isWaiting) { return; }
 
     // (3) Remove the message from the current list using the lock
-    if (isWaiting) {
-        std::lock_guard<std::mutex> lock(waitingLock);
-        waitingMessages.erase(waitingMessages.begin() + indexToRemove);
-    }
+    std::string messageStr = recvMesage.message.encodeToString();
+    std::cout << GREEN << ">In: " << messageStr << RESET << std::endl;
+    std::lock_guard<std::mutex> lock(waitingLock);
+    waitingMessages.erase(waitingMessages.begin() + indexToRemove);
 }
 

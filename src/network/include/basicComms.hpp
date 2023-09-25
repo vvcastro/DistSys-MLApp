@@ -15,6 +15,15 @@
 // Define a max size for transmited messages
 #define MAX_MSG_SIZE 1024
 
+// ANSI escape codes for text colors
+#define RESET   "\x1B[0m"
+#define RED     "\x1B[31m"
+#define GREEN   "\x1B[32m"
+#define CYAN    "\x1B[36m"
+#define BLUE    "\x1B[34m"
+#define MAGENTA "\x1B[35m"
+#define WHITE   "\x1B[37m"
+
 // --------- Define basic communication functions
 int defineSenderSocket();
 int defineReceiverSocket();
@@ -23,3 +32,5 @@ void sendUDPMessage(int socket, std::string toAddress, std::string encodedMessag
 void setupReceiverSocket(int recvSocket);
 
 std::string getIPv4Address(const std::string& interfaceName);
+
+
