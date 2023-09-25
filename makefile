@@ -8,7 +8,7 @@ BUILD_DIR := build
 SRC := $(wildcard $(SRC_DIR)/*.cpp) $(wildcard $(SRC_DIR)/network/*.cpp) $(wildcard $(SRC_DIR)/app/*.cpp)
 OBJS := $(patsubst $(SRC_DIR)/%.cpp, $(OBJ_DIR)/%.o, $(SRC))
 
-all: $(BUILD_DIR)/main
+all: $(BUILD_DIR)/main codesign
 
 $(BUILD_DIR)/main: $(OBJS)
 	@mkdir -p $(BUILD_DIR)
@@ -17,6 +17,9 @@ $(BUILD_DIR)/main: $(OBJS)
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
 	@mkdir -p $(dir $@)
 	$(CCX) $(CXXFLAGS) -c $< -o $@
+
+codesign: 
+	codesign -f -s - $(BUILD_DIR)/main
 
 clean:
 	rm -rf $(OBJ_DIR) $(BUILD_DIR)
