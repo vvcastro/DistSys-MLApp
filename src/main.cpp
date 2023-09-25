@@ -23,17 +23,12 @@ int main(int argc, char* argv[]) {
     node->showConnectionData();
 
     std::string userInput;
+    std::cout << "Enter a message to send.\n> ";
+    std::cin >> userInput;
+    node->sendMessage(peerAddress, userInput);
+
     while (true) {
-        std::cout << "Enter a command (or 'exit' to quit).\n> ";
-
-        // capture input from user
-        std::cin >> userInput;
-        if (userInput == "exit") {
-            break;
-        }
-
-        // construct message
-        node->sendMessage(peerAddress, userInput);
+        std::this_thread::sleep_for(std::chrono::seconds(1));
     }
 
     node->closeConnection();

@@ -38,12 +38,17 @@ void ReliableLink::sendMessage(std::string toAddress, Message message, bool rese
 
     // (1) Send the encoded message
     std::string encodedMessage = message.encode();
-    std::cout << "Transmited message: " << encodedMessage << std::endl;
     sendUDPMessage(sendSocket, toAddress, encodedMessage);
-    std::cout << "Address: " << toAddress << std::endl;
+
+    if (resending) {
+        std::cout << "Resending message: " << encodedMessage << std::endl;
+    }
+    else {
+        std::cout << "Sending message: " << encodedMessage << std::endl;
+    }
 
     // (2) If we are sending a DATA message, add it to waiting messages
-    if (message.getType() == DATA) {
+    if ((message.getType() == DATA) && (!resending)) {
         std::lock_guard<std::mutex> lock(waitingLock);
         SentMessage waitingMessage = SentMessage(toAddress, message);
         waitingMessages.push_back(waitingMessage);
@@ -89,7 +94,6 @@ void ReliableLink::receivingChannel() {
             close(recvSocket);
             throw std::runtime_error("Could not read @RL-listener");
         };
-        std::cout << "Received a message!" << std::endl;
 
         // Get the delivery info into strings
         inet_ntop(AF_INET, &(sourceAddr.sin_addr), senderIP, INET_ADDRSTRLEN);
@@ -121,6 +125,7 @@ void ReliableLink::handleMessage(RecvMessage RecvMessage) {
 
 // A "new" data message was received: 
 void ReliableLink::handleDataMessage(RecvMessage receivedMesage) {
+    std::cout << "Received a data message!" << std::endl;
 
     // (1) Send ACK (even on repetition)
     Message respondMessage(receivedMesage.message);
@@ -146,6 +151,7 @@ void ReliableLink::handleDataMessage(RecvMessage receivedMesage) {
 // If we received the ACK message we can remove the message
 // from the waiting list.
 void ReliableLink::handleACKMessage(RecvMessage receivedMesage) {
+    std::cout << "Received an ACK message!" << std::endl;
 
     // (1) Lock the waitingList to copy the messages to check
     waitingLock.lock();

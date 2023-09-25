@@ -10,7 +10,7 @@
 #define PORT 4000
 
 // Time to wait before resending a message
-#define RESEND_TIME_S 0.7
+#define RESEND_TIME_S 2.5
 
 // Define a max size for transmited messages
 #define MAX_MSG_SIZE 1024

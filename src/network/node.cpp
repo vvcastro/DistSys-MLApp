@@ -29,7 +29,6 @@ void Node::showConnectionData() {
 void Node::sendMessage(std::string toAddress, std::string data) {
     Message toSendMessage = Message(nodeId, DATA, data);
     toSendMessage.setClock(this->vectorClocks);
-    std::cout << "Sending message: " << data << std::endl;
     connection->sendMessage(toAddress, toSendMessage, false);
 }
 
@@ -42,5 +41,4 @@ void Node::updateVectorClock() {
 void Node::deliverMessage(RecvMessage recvMessage) {
     std::lock_guard<std::mutex> lock(deliveryLock);
     this->deliveredMessages.push_back(recvMessage);
-    std::cout << "Received a new message" << std::endl;
 }

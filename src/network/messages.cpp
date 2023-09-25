@@ -18,9 +18,9 @@ Message::Message(const Message& other) {
 // This final type of construction is the decoding from a string
 // transmited over the network.
 Message::Message(std::string encodedMessage) {
-    sender = "";
+    sender = "UNKNOWN";
     type = DATA;
-    data = "";
+    data = "PLACEHOLDER";
 }
 
 // Define the create of the capsule for sent messages
