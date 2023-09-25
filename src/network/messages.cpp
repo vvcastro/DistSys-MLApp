@@ -27,6 +27,7 @@ Message::Message(std::string encodedMessage) {
 SentMessage::SentMessage(std::string toAddress, Message message) {
     this->toAddress = toAddress;
     this->message = message;
+    this->reCounter = 0;
 }
 
 // Define the create of the capsule for received messages
@@ -76,4 +77,10 @@ bool RecvMessage::operator==(const RecvMessage& other) {
 bool SentMessage::isResponse(RecvMessage other) {
     bool msg_eq = (message == other.message);
     return (toAddress == other.fromAddress) && msg_eq;
+}
+
+// Add a counter for a reSent message, just to keep track of
+// some stats
+void SentMessage::addCounter() {
+    ++reCounter;
 }

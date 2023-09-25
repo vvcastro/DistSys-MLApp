@@ -49,7 +49,10 @@ class RecvMessage {
 class SentMessage {
     public:
     SentMessage(std::string toAddress, Message message);
+    bool isResponse(RecvMessage other);
+    void addCounter();
+
     std::string toAddress;
     Message message;
-    bool isResponse(RecvMessage other);
+    int reCounter;
 };

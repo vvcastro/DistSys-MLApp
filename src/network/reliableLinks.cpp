@@ -40,15 +40,9 @@ void ReliableLink::sendMessage(std::string toAddress, Message message, bool rese
     std::string encodedMessage = message.encode();
     sendUDPMessage(sendSocket, toAddress, encodedMessage);
 
-    if (resending) {
-        std::cout << "Resending message: " << encodedMessage << std::endl;
-    }
-    else {
-        std::cout << "Sending message: " << encodedMessage << std::endl;
-    }
-
     // (2) If we are sending a DATA message, add it to waiting messages
     if ((message.getType() == DATA) && (!resending)) {
+        std::cout << "Sending new message: " << encodedMessage << std::endl;
         std::lock_guard<std::mutex> lock(waitingLock);
         SentMessage waitingMessage = SentMessage(toAddress, message);
         waitingMessages.push_back(waitingMessage);
@@ -63,6 +57,9 @@ void ReliableLink::stubbornResending() {
 
         // Lock the waitingList to copy the messages to send
         waitingLock.lock();
+        for (size_t i = 0; i < waitingMessages.size(); ++i) {
+            waitingMessages[i].addCounter();
+        }
         std::vector<SentMessage> toResendMessages(waitingMessages);
         waitingLock.unlock();
 
@@ -70,6 +67,10 @@ void ReliableLink::stubbornResending() {
         for (size_t i = 0; i < toResendMessages.size(); ++i) {
             SentMessage msgToResend = toResendMessages[i];
             sendMessage(msgToResend.toAddress, msgToResend.message, true);
+
+            std::cout << "(Iter " << std::to_string(msgToResend.reCounter) << ") ";
+            std::cout << "Re-sending message: " << msgToResend.message.encode() << std::endl;
+
         }
     }
 }
