@@ -1,4 +1,5 @@
 #include "include/messages.hpp"
+#include <map>
 
 // Standard constructor for the class
 Message::Message(std::string sender, MessageType type, std::string data) {
@@ -114,7 +115,7 @@ std::string getTypeString(MessageType type) {
 MessageType stringToType(const std::string typeName) {
 
     // Define an standard mapping
-    std::unordered_map<std::string, MessageType> typeMaps = {
+    std::map<std::string, MessageType> typeMaps = {
         {"DATA", DATA},
         {"ACK", ACK},
         {"BEAT", BEAT}
