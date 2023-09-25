@@ -113,23 +113,24 @@ void ReliableLink::handleMessage(RecvMessage RecvMessage) {
     switch (messageData.getType()) {
         case DATA:
             handleDataMessage(RecvMessage);
+            return;
 
         case ACK:
             handleACKMessage(RecvMessage);
+            return;
 
         default:
             // Any other type of message is not manage by this class
-            break;
+            return;
     }
 }
 
 // A "new" data message was received: 
 void ReliableLink::handleDataMessage(RecvMessage recvMesage) {
-    std::cout << " Handling DATA: ";
 
     // (1) Send ACK (even on repetition)
     Message respondData = Message::getRespondMessage(recvMesage.message);
-    std::cout << respondData.encodeToString() << std::endl;
+    std::cout << " - Sent || <" << respondData.encodeToString() << ">" << std::endl;
     sendMessage(recvMesage.fromAddress, respondData, false);
 
     // (2) Check if it should be received
