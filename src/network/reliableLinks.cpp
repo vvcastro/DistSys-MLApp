@@ -5,6 +5,7 @@
 ReliableLink::ReliableLink(std::string nodeId, std::function<void(RecvMessage)> deliveryMethod) {
     this->nodeId = nodeId;
     this->deliveryMethod = deliveryMethod;
+    this->status = true;
 
     // define sockets to use
     sendSocket = defineSenderSocket();
@@ -88,7 +89,7 @@ void ReliableLink::receivingChannel() {
             close(recvSocket);
             throw std::runtime_error("Could not read @RL-listener");
         };
-        std::cout << "A message was received!" << std::endl;
+        std::cout << "Received a message!" << std::endl;
 
         // Get the delivery info into strings
         inet_ntop(AF_INET, &(sourceAddr.sin_addr), senderIP, INET_ADDRSTRLEN);
