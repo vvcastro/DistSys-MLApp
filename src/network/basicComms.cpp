@@ -34,7 +34,6 @@ void sendUDPMessage(int socket, std::string toAddress, std::string encodedMessag
 
     // Serialises and sends the message
     int messageSize = encodedMessage.length();
-
     ssize_t sent_bytes = sendto(socket, encodedMessage.c_str(), messageSize, 0, (struct sockaddr*)&destAddr, sizeof(destAddr));
     if (sent_bytes < 0) {
         perror("Message sending error");

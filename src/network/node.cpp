@@ -29,6 +29,7 @@ void Node::showConnectionData() {
 void Node::sendMessage(std::string toAddress, std::string data) {
     Message toSendMessage = Message(nodeId, DATA, data);
     toSendMessage.setClock(this->vectorClocks);
+    std::cout << "Sending message: " << data << std::endl;
     connection->sendMessage(toAddress, toSendMessage, false);
 }
 

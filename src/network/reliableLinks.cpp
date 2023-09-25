@@ -37,7 +37,9 @@ void ReliableLink::sendMessage(std::string toAddress, Message message, bool rese
 
     // (1) Send the encoded message
     std::string encodedMessage = message.encode();
+    std::cout << "Transmited message: " << encodedMessage << std::endl;
     sendUDPMessage(sendSocket, toAddress, encodedMessage);
+    std::cout << "Address: " << toAddress << std::endl;
 
     // (2) If we are sending a DATA message, add it to waiting messages
     if (message.getType() == DATA) {
@@ -72,6 +74,8 @@ void ReliableLink::receivingChannel() {
 
     // Bind the socket to start listening
     setupReceiverSocket(recvSocket);
+    std::cout << "Listening for message!" << std::endl;
+
     while (isRunning()) {
         struct sockaddr_in sourceAddr;
         socklen_t sourceLen = sizeof(sourceAddr);
@@ -84,6 +88,7 @@ void ReliableLink::receivingChannel() {
             close(recvSocket);
             throw std::runtime_error("Could not read @RL-listener");
         };
+        std::cout << "A message was received!" << std::endl;
 
         // Get the delivery info into strings
         inet_ntop(AF_INET, &(sourceAddr.sin_addr), senderIP, INET_ADDRSTRLEN);
