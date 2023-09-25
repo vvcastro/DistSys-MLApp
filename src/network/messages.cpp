@@ -1,26 +1,45 @@
 #include "include/messages.hpp"
 
 // Standard constructor for the class
-Message::Message(const std::string sender, const MessageType type, const std::string data) {
+Message::Message(std::string sender, MessageType type, std::string data) {
     this->sender = sender;
     this->type = type;
     this->data = data;
 }
 
-// Construction by copying another instance
-Message::Message(const Message& other) {
-    sender = other.sender;
-    type = other.type;
-    data = other.data;
-    vclock = other.vclock;
+// Encodes the data into a string
+std::string Message::encodeToString() {
+    std::string encoded;
+    encoded += "(" + getTypeString(type) + ")";
+    encoded += "|From: " + sender + "|Data: " + data + "|Clock: -|";
+    return encoded;
 }
 
-// This final type of construction is the decoding from a string
-// transmited over the network.
-Message::Message(std::string encodedMessage) {
-    sender = "UNKNOWN";
-    type = DATA;
-    data = "PLACEHOLDER";
+// Decodes the encrypted data transmited over the network.
+Message Message::decodeToMessage(std::string encodedMessage) {
+    std::istringstream stream(encodedMessage);
+
+    // Parse the string
+    std::string strType, senderId, msgData, vclock;
+    stream.ignore(2);
+    std::getline(stream, strType, ')');
+    stream.ignore(9);
+    std::getline(stream, senderId, '|');
+    stream.ignore(7);
+    std::getline(stream, msgData, '|');
+    stream.ignore(8);
+    std::getline(stream, vclock, '|');
+
+    // Re-construct the message
+    MessageType msgType = static_cast<MessageType>(std::stoi(strType));
+    return Message(senderId, msgType, msgData);
+}
+
+// Gets the respondData for a given message
+Message Message::getRespondMessage(const Message& other) {
+    Message respond(other.sender, ACK, other.data);
+    respond.setClock(other.vclock);
+    return respond;
 }
 
 // Define the create of the capsule for sent messages
@@ -41,23 +60,6 @@ void Message::setClock(std::vector<std::pair<std::string, int> > vclock) {
     this->vclock = vclock;
 }
 
-// Return the data type of the message. It is just a wrapper
-// to protect the assignment of the value
-MessageType Message::getType() {
-    return type;
-}
-
-// Sets the message type to the required (usually ACK)
-void Message::setType(MessageType type) {
-    this->type = type;
-}
-
-
-// Encodes the data into a string
-std::string Message::encode() {
-    return "TODO";
-}
-
 // Overrides the default == operator
 bool Message::operator==(const Message& other) {
     bool sender_eq = (sender == other.sender);
@@ -66,21 +68,32 @@ bool Message::operator==(const Message& other) {
     return sender_eq && data_eq && clock_eq;
 }
 
-// For the RecvMessage class, check if two messages
-// are the same.
+// For the RecvMessage class, check if two messages are the same.
 bool RecvMessage::operator==(const RecvMessage& other) {
     return (fromAddress == other.fromAddress) && (message == other.message);
 }
 
-// Check if a message is a response if the data is the same
-// but sender and receiver are swaped.
+// Check if a message is a response (==data) and sender and receiver are swaped.
 bool SentMessage::isResponse(RecvMessage other) {
     bool msg_eq = (message == other.message);
     return (toAddress == other.fromAddress) && msg_eq;
 }
 
-// Add a counter for a reSent message, just to keep track of
-// some stats
+// Add a counter for a reSent message, just to keep track of stats
 void SentMessage::addCounter() {
     ++reCounter;
+}
+
+// ----------- AUX functions
+std::string getTypeString(MessageType type) {
+    switch (type) {
+        case DATA:
+            return "DATA";
+        case ACK:
+            return "ACK";
+        case BEAT:
+            return "BEAT";
+        default:
+            return "";
+    }
 }

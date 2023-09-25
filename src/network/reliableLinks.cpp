@@ -37,12 +37,12 @@ void ReliableLink::stopLink() {
 void ReliableLink::sendMessage(std::string toAddress, Message message, bool resending) {
 
     // (1) Send the encoded message
-    std::string encodedMessage = message.encode();
+    std::string encodedMessage = message.encodeToString();
     sendUDPMessage(sendSocket, toAddress, encodedMessage);
 
     // (2) If we are sending a DATA message, add it to waiting messages
     if ((message.getType() == DATA) && (!resending)) {
-        std::cout << "Sending new message: " << encodedMessage << std::endl;
+        std::cout << "Sending || <" << encodedMessage << ">" << std::endl;
         std::lock_guard<std::mutex> lock(waitingLock);
         SentMessage waitingMessage = SentMessage(toAddress, message);
         waitingMessages.push_back(waitingMessage);
@@ -68,9 +68,8 @@ void ReliableLink::stubbornResending() {
             SentMessage msgToResend = toResendMessages[i];
             sendMessage(msgToResend.toAddress, msgToResend.message, true);
 
-            std::cout << "(Iter " << std::to_string(msgToResend.reCounter) << ") ";
-            std::cout << "Re-sending message: " << msgToResend.message.encode() << std::endl;
-
+            std::cout << "Re-send || <" << msgToResend.message.encodeToString() << "> || ";
+            std::cout << "(I: " << std::to_string(msgToResend.reCounter) << ")" << std::endl;
         }
     }
 }
@@ -81,7 +80,6 @@ void ReliableLink::receivingChannel() {
 
     // Bind the socket to start listening
     setupReceiverSocket(recvSocket);
-    std::cout << "Listening for message!" << std::endl;
 
     while (isRunning()) {
         struct sockaddr_in sourceAddr;
@@ -102,7 +100,8 @@ void ReliableLink::receivingChannel() {
         std::string fromAddress(senderIP);
 
         // Decode it into a message class structure
-        Message decodedMessage = Message(encodedMessage);
+        std::cout << " - Recv || <" << encodedMessage << ">" << std::endl;
+        Message decodedMessage = Message::decodeToMessage(encodedMessage);
         RecvMessage recvMessage = RecvMessage(fromAddress, decodedMessage);
         handleMessage(recvMessage);
     }
@@ -125,18 +124,16 @@ void ReliableLink::handleMessage(RecvMessage RecvMessage) {
 }
 
 // A "new" data message was received: 
-void ReliableLink::handleDataMessage(RecvMessage receivedMesage) {
-    std::cout << "Received a data message!" << std::endl;
+void ReliableLink::handleDataMessage(RecvMessage recvMesage) {
 
     // (1) Send ACK (even on repetition)
-    Message respondMessage(receivedMesage.message);
-    respondMessage.setType(ACK);
-    sendMessage(receivedMesage.fromAddress, respondMessage, false);
+    Message respondData = Message::getRespondMessage(recvMesage.message);
+    sendMessage(recvMesage.fromAddress, respondData, false);
 
     // (2) Check if it should be received
     bool wasReceived = false;
     for (size_t i = 0; i < RecvMessages.size(); i++) {
-        if (RecvMessages[i] == receivedMesage) {
+        if (RecvMessages[i] == recvMesage) {
             wasReceived = true;
             return;
         }
@@ -144,8 +141,8 @@ void ReliableLink::handleDataMessage(RecvMessage receivedMesage) {
 
     // Adds the message to the list of received and runs the delivery
     if (!wasReceived) {
-        this->RecvMessages.push_back(receivedMesage);
-        this->deliveryMethod(receivedMesage);
+        this->RecvMessages.push_back(recvMesage);
+        this->deliveryMethod(recvMesage);
     }
 }
 

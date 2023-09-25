@@ -1,6 +1,8 @@
 #include <iostream>
+#include <sstream>
 #include <utility>
 #include <vector>
+#include <string>
 
 enum MessageType {
     DATA,
@@ -12,17 +14,17 @@ enum MessageType {
 class Message {
     public:
     Message() {}
-    Message(const std::string sender, const MessageType type, const std::string data);
-    Message(const std::string encodedMessage); // decode string into message
-    Message(const Message& other);
+    Message(std::string sender, MessageType type, std::string data);
 
     // To manage internal data
-    MessageType getType();
+    MessageType getType() { return type; };
     void setType(MessageType type);
     void setClock(std::vector<std::pair<std::string, int> > vclocks);
 
     // To be able to exchange the message over the network
-    std::string encode();
+    std::string encodeToString();
+    static Message decodeToMessage(const std::string encodedMessage);
+    static Message getRespondMessage(const Message& other);
 
     // To compare messages
     bool operator==(const Message& other);
@@ -56,3 +58,6 @@ class SentMessage {
     Message message;
     int reCounter;
 };
+
+// A function for enum
+std::string getTypeString(MessageType type);
