@@ -1,38 +1,24 @@
-CC := gcc
-LIBS := -lpthread
-CFLAGS := -Wall -Wextra -Isrc/include
+CCX := g++
+CXXLAGS := -std=c++11 -Isrc -Isrc/network/include -Isrc/app/include -lpthread
 
 SRC_DIR := src
 OBJ_DIR := obj
 BUILD_DIR := build
 
-SRC := $(wildcard $(SRC_DIR)/*.c)
-OBJ := $(patsubst $(SRC_DIR)/%.c, $(OBJ_DIR)/%.o, $(SRC))
-OPS := -p
+SRC := $(wildcard $(SRC_DIR)/*.cpp) $(wildcard $(SRC_DIR)/network/*.cpp) $(wildcard $(SRC_DIR)/app/*.cpp)
+OBJS := $(patsubst $(SRC_DIR)/%.cpp, $(OBJ_DIR)/%.o, $(SRC))
 
-ifeq ($(OS),Windows_NT)
-    LIBS += -lws2_32
-	OPS := 
-endif
+all: $(BUILD_DIR)/main
 
-all: directories sender receiver node
+$(BUILD_DIR)/main: $(OBJS)
+	@mkdir -p $(BUILD_DIR)
+	$(CCX) $(CXXFLAGS) -o $@ $^
 
-directories:
-	mkdir $(OPS) $(BUILD_DIR) $(OBJ_DIR)
-
-sender: $(OBJ_DIR)/sender.o $(OBJ_DIR)/network.o
-	$(CC) $(CFLAGS) -o $(BUILD_DIR)/sender $(OBJ_DIR)/sender.o $(OBJ_DIR)/network.o $(LIBS)
-
-receiver: $(OBJ_DIR)/receiver.o $(OBJ_DIR)/network.o
-	$(CC) $(CFLAGS) -o $(BUILD_DIR)/receiver $(OBJ_DIR)/receiver.o $(OBJ_DIR)/network.o $(LIBS)
-
-node: $(OBJ_DIR)/node.o $(OBJ_DIR)/network.o
-	$(CC) $(CFLAGS) -o $(BUILD_DIR)/node $(OBJ_DIR)/node.o $(OBJ_DIR)/network.o $(LIBS)
-
-$(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
-	$(CC) $(CFLAGS) -c $< -o $@
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
+	@mkdir -p $(dir $@)
+	$(CCX) $(CXXLAGS) -c $< -o $@
 
 clean:
-	rm -rf $(BUILD_DIR) $(OBJ_DIR)
+	rm -rf $(OBJ_DIR) $(BUILD_DIR)
 
 .PHONY: all clean
