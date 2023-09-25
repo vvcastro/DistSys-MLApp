@@ -1,5 +1,5 @@
 CCX := g++
-CXXLAGS := -std=c++11 -Isrc -Isrc/network/include -Isrc/app/include -lpthread
+CXXLAGS := -std=c++17 -lpthread -Isrc -Isrc/network/include -Isrc/app/include
 
 SRC_DIR := src
 OBJ_DIR := obj
