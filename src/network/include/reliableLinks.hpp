@@ -1,5 +1,6 @@
 #include "basicComms.hpp"
 #include "messages.hpp"
+#include <functional>
 #include <thread>
 #include <mutex>
 
