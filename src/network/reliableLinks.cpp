@@ -125,9 +125,11 @@ void ReliableLink::handleMessage(RecvMessage RecvMessage) {
 
 // A "new" data message was received: 
 void ReliableLink::handleDataMessage(RecvMessage recvMesage) {
+    std::cout << " Handling DATA: ";
 
     // (1) Send ACK (even on repetition)
     Message respondData = Message::getRespondMessage(recvMesage.message);
+    std::cout << respondData.encodeToString() << std::endl;
     sendMessage(recvMesage.fromAddress, respondData, false);
 
     // (2) Check if it should be received
