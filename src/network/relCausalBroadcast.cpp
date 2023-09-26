@@ -29,16 +29,22 @@ void ReliableCausalBroadcast::closeConnection() {
 // Creates a message and uses the underlying connection to transmit it
 void ReliableCausalBroadcast::broadcastMessage(Message message) {
 
+    // (0) Add locks to the message
+    clocksLock.lock();
+    message.setClock(this->vectorClock);
+    clocksLock.unlock();
+
     // (1) Deliver the message(except when sending BEAT)
     RecvMessage recvMsg(this->nodeAddress, message);
     this->deliverCallback(recvMsg);
 
-    // (2) Add the clock data to the message and broadcas
-    message.setClock(this->vectorClock);
+    // (2) Broadcast message
     this->relBroadcast->broadcastMessage(message);
 
     // (3) Update node's clock
+    clocksLock.lock();
     this->vectorClock[this->nodeAddress] += 1;
+    clocksLock.unlock();
 }
 
 // This is just the delivery to a bigger structure of the message
@@ -75,7 +81,13 @@ void ReliableCausalBroadcast::deliverPendingProc() {
         for (it = pendingMessages.begin(); it != pendingMessages.end();) {
             std::pair<std::string, Message> currentPair = *it;
             std::map<std::string, int> clockToCompare = currentPair.second.getClock();
-            if (this->isPreviousClock(clockToCompare)) {
+
+            // Compare the clocks
+            clocksLock.lock();
+            bool before = this->isPreviousClock(clockToCompare);
+            clocksLock.unlock();
+
+            if (before) {
                 stillGoing = true;
 
                 // (1) Deliver the message
@@ -83,7 +95,9 @@ void ReliableCausalBroadcast::deliverPendingProc() {
                 this->deliverCallback(recvMsg);
 
                 // (2) Update vectorClock of the sender
+                clocksLock.lock();
                 this->vectorClock[currentPair.first] += 1;
+                clocksLock.unlock();
 
                 // (3) Delete value from pending
                 it = pendingMessages.erase(it);

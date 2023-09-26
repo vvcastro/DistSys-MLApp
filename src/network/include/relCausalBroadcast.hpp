@@ -31,8 +31,7 @@ class ReliableCausalBroadcast {
     void deliverPendingProc();
 
     // Vector Clocks for causal order
-    std::map<std::string, int> vectorClock;
     bool isPreviousClock(std::map<std::string, int> otherClock);
-
-
+    std::map<std::string, int> vectorClock;
+    std::mutex clocksLock;
 };
