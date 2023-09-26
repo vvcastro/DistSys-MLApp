@@ -2,6 +2,7 @@
 #include <functional>
 #include <thread>
 #include <mutex>
+#include <set>
 #include <map>
 
 // A FailureDetector uses timing assumptions to provide
@@ -9,9 +10,9 @@
 class FailureDetector {
     public:
     FailureDetector(
-        std::string nodeAddress,
-        std::vector<std::string> nodesGroup,
-        std::function<void(std::string)> suspectCallback
+        std::set<std::string> nodesGroup,
+        std::function<void(std::string)> suspectCallback,
+        std::function<void(Message)> broadcastMessageCall
     );
 
     // Handle the timers when a BEAT is received
@@ -27,23 +28,22 @@ class FailureDetector {
 
     private:
     bool status;
-    std::string nodeAddress;
 
     // Handle the group of processes
     std::mutex membersLock;
-    std::vector<std::string> currentGroup;
+    std::set<std::string> correctNodes;
 
     // Define the timers for each process
     std::map<std::string, float> membersMaxWait;
     std::map<std::string, float> membersTimers;
 
     // Manage when a new BEAT message arrives
-    std::function<void(std::string)> suspectCrash;
+    std::function<void(std::string)> handleCrash;
     void inspectBeatings();
 
     // Defines the primitives for sending beats.
-    int sendSocket;
-    void heartBeating();
+    std::function<void(Message)> broadcastMessage;
+    void transmitHeartBeat();
 
     // relevant locks
     std::mutex statusLock;

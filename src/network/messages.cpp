@@ -56,6 +56,9 @@ RecvMessage::RecvMessage(std::string fromAddress, Message message) {
 
 // Prints the SentMessage
 void SentMessage::displayMessage() {
+    if (this->message.getType() == BEAT) {
+        return;
+    }
     std::string messageStr = this->message.encodeToString();
     std::cout << MAGENTA << "<To: " << this->toAddress << " {";
     std::cout << messageStr << "}" << RESET << std::endl;

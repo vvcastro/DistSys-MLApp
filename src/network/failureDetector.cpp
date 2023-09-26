@@ -1,32 +1,34 @@
 #include "include/failureDetector.hpp"
-#include "comms.hpp"
+#include "include/comms.hpp"
 #include <algorithm>
 #include <vector>
+#include <set>
 #include <map>
 
 FailureDetector::FailureDetector(
-    std::string nodeAddress,
-    std::vector<std::string> nodesGroup,
-    std::function<void(std::string)> suspectCallback
+    std::set<std::string> nodesGroup,
+    std::function<void(std::string)> suspectCallback,
+    std::function<void(Message)> broadcastMessageCall
 ) {
     this->status = true;
-    this->nodeAddress = nodeAddress;
-    currentGroup = nodesGroup;
-    suspectCrash = suspectCallback;
+    this->correctNodes = nodesGroup;
+    this->handleCrash = suspectCallback;
+    this->broadcastMessage = broadcastMessageCall;
 
     // Define an initial waitTime for beats
     std::map<std::string, float> initialMaxTimes;
     std::map<std::string, float> initialTimes;
-    for (size_t i = 0; i < currentGroup.size(); i++) {
-        initialMaxTimes.insert(make_pair(currentGroup[i], HEARTBEAT_PERIOD * 10));
-        initialTimes.insert(make_pair(currentGroup[i], -1));
+
+    std::set<std::string>::iterator it;
+    for (it = correctNodes.begin(); it != correctNodes.end(); ++it) {
+        initialMaxTimes.insert(make_pair(*it, HEARTBEAT_PERIOD * 10));
+        initialTimes.insert(make_pair(*it, -1));
     };
     this->membersMaxWait = initialMaxTimes;
     this->membersTimers = initialTimes;
 
     // define elements for hearBeating
-    sendSocket = defineSenderSocket();
-    std::thread beatingThread(std::bind(&FailureDetector::heartBeating, this));
+    std::thread beatingThread(std::bind(&FailureDetector::transmitHeartBeat, this));
     beatingThread.detach();
 
     // periodically checks for the timeouts
@@ -44,23 +46,33 @@ bool FailureDetector::isRunning() {
 void FailureDetector::stopDetector() {
     std::lock_guard<std::mutex> lock(statusLock);
     status = false;
-    close(sendSocket);
 }
 
-// When a new BEAT message arrives, update the timeout
-// related to the process
+// Every X seconds the thread broadcast BEAT message to all the members
+void FailureDetector::transmitHeartBeat() {
+    while (isRunning()) {
+        std::this_thread::sleep_for(std::chrono::duration<float>(HEARTBEAT_PERIOD));
+        Message beatMessage("", BEAT, "");
+        this->broadcastMessage(beatMessage);
+    }
+}
+
+// When a new BEAT message arrives, update the related timeout
 void FailureDetector::handleBeatMessage(RecvMessage recvMessage) {
     std::string mAddress = recvMessage.fromAddress;
     float currentTimeOut;
     float maxTimeOut;
 
-    std::lock_guard<std::mutex> lock(membersLock);
-
     // Find the related time outs
+    std::lock_guard<std::mutex> lock(membersLock);
     std::map<std::string, float>::iterator pos = membersTimers.find(mAddress);
     std::map<std::string, float>::iterator maxPos = membersMaxWait.find(mAddress);
-    if (pos == membersTimers.end()) { return; };
-    if (maxPos == membersMaxWait.end()) { return; };
+
+    // In this case we found a process joining the group
+    if (pos == membersTimers.end() && maxPos == membersMaxWait.end()) {
+        std::cout << GREEN << "SYS: new process found -> " << mAddress << RESET << std::endl;
+        return;
+    };
     currentTimeOut = pos->second;
     maxTimeOut = maxPos->second;
 
@@ -76,34 +88,15 @@ void FailureDetector::handleBeatMessage(RecvMessage recvMessage) {
     pos->second = maxPos->second;
 }
 
-// Every X seconds the threads send a BEAT message to all the
-// current memebers on the group.
-void FailureDetector::heartBeating() {
-    while (isRunning()) {
-        std::this_thread::sleep_for(std::chrono::duration<float>(HEARTBEAT_PERIOD));
-
-        // Define the BEAT message
-        Message beatMessage(nodeAddress, BEAT, "");
-        std::string encodedBeat = beatMessage.encodeToString();
-
-        // Lock to get all the current memebers of the group
-        for (size_t i = 0; i < currentGroup.size(); ++i) {
-            std::string memberAddress = currentGroup[i];
-            if (memberAddress != this->nodeAddress) {
-                sendUDPMessage(sendSocket, memberAddress, encodedBeat);
-            }
-        }
-    }
-}
-
 // Checks periodically for the timeouts of the group processes
 void FailureDetector::inspectBeatings() {
-    float samplingTime = HEARTBEAT_PERIOD / 10;
+    float samplingTime = HEARTBEAT_PERIOD / 5;
     while (isRunning()) {
         std::this_thread::sleep_for(std::chrono::duration<float>(samplingTime));
+        std::vector<std::string> susMembers;
 
-        // Locks for time-outs between the groupProcesses
-        std::lock_guard<std::mutex> lock(membersLock);
+        // (1) Iterate to update timer values
+        membersLock.lock();
         std::map<std::string, float>::iterator pos;
         for (pos = membersTimers.begin(); pos != membersTimers.end(); ++pos) {
             if (pos->second == -1) { continue; }
@@ -115,11 +108,18 @@ void FailureDetector::inspectBeatings() {
             // Now we check if it crossed the threhsold
             std::string susAddress = pos->first;
             std::map<std::string, float>::iterator maxPos = membersMaxWait.find(susAddress);
-            if (maxPos == membersMaxWait.end()) { return; };
             if (pos->second <= (-1.5 * maxPos->second)) {
-                suspectCrash(pos->first);
+                susMembers.push_back(pos->first);
             }
         }
+        membersLock.unlock();
+
+        // (2) Now we work with the process to be removed
+        for (size_t i = 0; i < susMembers.size(); ++i) {
+            std::string susAddress = susMembers[i];
+            handleCrash(susAddress);
+        }
+
     }
 }
 
@@ -129,7 +129,7 @@ void FailureDetector::addNewMember(std::string memberAddress) {
     std::lock_guard<std::mutex> lock(membersLock);
     membersMaxWait.insert(make_pair(memberAddress, HEARTBEAT_PERIOD * 10));
     membersTimers.insert(make_pair(memberAddress, -1));
-    currentGroup.push_back(memberAddress);
+    correctNodes.insert(memberAddress);
 }
 
 // Deletes a member from the group
@@ -137,11 +137,5 @@ void FailureDetector::removeMember(std::string memberAddress) {
     std::lock_guard<std::mutex> lock(membersLock);
     membersMaxWait.erase(memberAddress);
     membersTimers.erase(memberAddress);
-
-    // Find the value at the currentGroup vector
-    std::vector<std::string>::iterator pos = std::find(
-        currentGroup.begin(), currentGroup.end(), memberAddress
-    );
-    if (pos == currentGroup.end()) { return; }
-    currentGroup.erase(pos);
+    correctNodes.erase(memberAddress);
 }

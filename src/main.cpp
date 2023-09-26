@@ -9,7 +9,7 @@ std::shared_ptr<Node> node;
 // Exit code and close active instances
 void handleCtrlC(int signal) {
     std::cout << "\nExiting main code!\n" << std::endl;
-    node->closeConnection();
+    node->close();
     exit(signal);
 }
 
@@ -30,6 +30,6 @@ int main(int argc, char* argv[]) {
         std::this_thread::sleep_for(std::chrono::seconds(1));
     }
 
-    node->closeConnection();
+    node->close();
     return 0;
 }
