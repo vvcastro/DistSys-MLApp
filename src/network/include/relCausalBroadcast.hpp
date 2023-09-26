@@ -25,7 +25,7 @@ class ReliableCausalBroadcast {
     std::shared_ptr<ReliableBroadcast> relBroadcast;
 
     // For delivery of messages
-    std::set<std::pair<std::string, Message>> pendingMessages;
+    std::vector<std::pair<std::string, Message>> pendingMessages;
     std::vector<Message> deliveredMessages;
     std::mutex deliverLock;
 

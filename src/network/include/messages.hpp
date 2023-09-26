@@ -72,11 +72,6 @@ class SentMessage {
 
     std::string toAddress;
     Message message;
-
-    // To compute how many times a message is re-sent
-    int reCounter;
-    void addCounter() { ++reCounter; };
-
 };
 
 // ----------- AUX functions

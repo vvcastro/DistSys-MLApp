@@ -63,9 +63,6 @@ void ReliableLink::stubbornResending() {
 
         // Lock the waitingList to copy the messages to send
         waitingLock.lock();
-        for (size_t i = 0; i < waitingMessages.size(); ++i) {
-            waitingMessages[i].addCounter();
-        }
         std::vector<SentMessage> toResendMessages(waitingMessages);
         waitingLock.unlock();
 
@@ -96,7 +93,6 @@ void ReliableLink::receivingChannel() {
             close(recvSocket);
             throw std::runtime_error("Could not read @RL-listener");
         };
-        std::cout << "Read " << std::to_string(bytesReceived) << " bytes." << std::endl;
 
         // Get the delivery info into strings
         inet_ntop(AF_INET, &(sourceAddr.sin_addr), senderIP, INET_ADDRSTRLEN);
@@ -112,6 +108,7 @@ void ReliableLink::receivingChannel() {
 
 // Performs the preprocessing of the message depending on the type
 void ReliableLink::handleMessage(RecvMessage recvMessage) {
+    recvMessage.displayMessage();
     switch (recvMessage.message.getType()) {
         case DATA:
             handleDataMessage(recvMessage);
@@ -133,32 +130,23 @@ void ReliableLink::handleMessage(RecvMessage recvMessage) {
 
 // A "new" data message was received: 
 void ReliableLink::handleDataMessage(RecvMessage recvMesage) {
-    recvMesage.displayMessage();
 
     // (1) Send ACK (even on repetition)
     Message respondData = Message::getRespondMessage(recvMesage.message);
     sendMessage(recvMesage.fromAddress, respondData, false);
 
     // (2) Check if it should be received
-    bool wasReceived = false;
-    for (size_t i = 0; i < recvMessages.size(); i++) {
-        if (recvMessages[i] == recvMesage) {
-            wasReceived = true;
-            return;
-        }
+    for (size_t i = 0; i < recvMessages.size(); ++i) {
+        if (recvMessages[i] == recvMesage) { return; }
     }
 
     // Adds the message to the list of received and runs the delivery
-    if (!wasReceived) {
-        std::string messageStr = recvMesage.message.encodeToString();
-        this->recvMessages.push_back(recvMesage);
-        this->deliveryMethod(recvMesage);
-    }
+    this->recvMessages.push_back(recvMesage);
+    this->deliveryMethod(recvMesage);
 }
 
 // When receive an ACK message remove the message from the waiting list.
 void ReliableLink::handleACKMessage(RecvMessage recvMesage) {
-    recvMesage.displayMessage();
 
     // (1) Lock the waitingList to copy the messages to check
     waitingLock.lock();

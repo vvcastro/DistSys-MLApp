@@ -52,7 +52,6 @@ Message Message::getRespondMessage(const Message& other) {
 SentMessage::SentMessage(std::string toAddress, Message message) {
     this->toAddress = toAddress;
     this->message = message;
-    this->reCounter = 0;
 }
 
 // Define the create of the capsule for received messages
@@ -93,14 +92,16 @@ bool Message::operator==(const Message& other) {
 }
 
 bool Message::operator<(const Message& other) const {
-    return mapToString(clock) < mapToString(other.clock);
+    bool sender_eq = (sender == other.sender);
+    bool data_eq = (data == other.data);
+    bool clock_eq = (mapToString(clock) == mapToString(other.clock));
+    return sender_eq && data_eq && clock_eq;
 }
 
 // For the RecvMessage class, check if two messages are the same.
 bool RecvMessage::operator==(const RecvMessage& other) {
     return (fromAddress == other.fromAddress) && (message == other.message);
 }
-
 
 // ----------- AUX functions
 std::string getTypeString(MessageType type) {
