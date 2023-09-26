@@ -43,17 +43,28 @@ void ReliableCausalBroadcast::broadcastMessage(Message message) {
 // This is just the delivery to a bigger structure of the message
 void ReliableCausalBroadcast::deliverMessage(RecvMessage recvMessage) {
     std::string senderAddress = recvMessage.fromAddress;
-    if (senderAddress == nodeAddress) { return; }
+    Message sentMessage = recvMessage.message;
+    if (senderAddress == nodeAddress) { return; };
 
     // (1) Add to pending
-    std::pair<std::string, Message> toAdd(senderAddress, recvMessage.message);
-    this->pendingMessages.insert(toAdd);
+    bool isPresent = false;
+    for (size_t i = 0; i < pendingMessages.size(); ++i) {
+        std::pair<std::string, Message> currentPair = pendingMessages[i];
+        if ((currentPair.first == senderAddress) && (currentPair.second == sentMessage)) {
+            isPresent = true;
+            break;
+        };
+    }
+    if (!isPresent) {
+        std::pair<std::string, Message> toAdd(senderAddress, recvMessage.message);
+        this->pendingMessages.push_back(toAdd);
+    }
 
     // (2) Perform deliver-pending procedure
     while (true) {
 
         // Look if there is a pair with the conditions
-        std::set<std::pair<std::string, Message>>::iterator it;
+        std::vector<std::pair<std::string, Message>>::iterator it;
         for (it = pendingMessages.begin(); it != pendingMessages.end();) {
             std::pair<std::string, Message> currentPair = *it;
             std::map<std::string, int> clockToCompare = currentPair.second.getClock();
