@@ -113,12 +113,10 @@ void ReliableLink::receivingChannel() {
 void ReliableLink::handleMessage(RecvMessage recvMessage) {
     switch (recvMessage.message.getType()) {
         case DATA:
-            recvMessage.displayMessage();
             handleDataMessage(recvMessage);
             return;
 
         case ACK:
-            recvMessage.displayMessage();
             handleACKMessage(recvMessage);
             return;
 

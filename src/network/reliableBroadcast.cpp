@@ -72,6 +72,7 @@ void ReliableBroadcast::deliverMessage(RecvMessage recvMessage) {
     // (1) Make a safe copy of the delivered messages 
     deliverLock.lock();
     std::vector<Message> copyMessages(this->deliveredMessages);
+    recvMessage.displayMessage();
     deliverLock.unlock();
 
     // (2) Check if the messages was previously delivered
