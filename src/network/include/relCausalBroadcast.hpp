@@ -10,7 +10,8 @@ class ReliableCausalBroadcast {
     public:
     ReliableCausalBroadcast(
         std::string nodeAddress,
-        std::vector<std::string> nodesGroup
+        std::vector<std::string> nodesGroup,
+        std::function<void(RecvMessage)> deliverCallback
     );
 
     // Networking utilities
@@ -25,9 +26,9 @@ class ReliableCausalBroadcast {
     std::shared_ptr<ReliableBroadcast> relBroadcast;
 
     // For delivery of messages
+    std::function<void(RecvMessage)> deliverCallback;
     std::vector<std::pair<std::string, Message>> pendingMessages;
-    std::vector<Message> deliveredMessages;
-    std::mutex deliverLock;
+    void deliverPendingProc();
 
     // Vector Clocks for causal order
     std::map<std::string, int> vectorClock;

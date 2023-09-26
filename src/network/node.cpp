@@ -8,8 +8,8 @@ Node::Node(std::string networkInt) {
     this->correctNodes = PROCESS_POOL;
 
     // Start the connection
-    std::function<void(RecvMessage)> deliverCallback = [this](RecvMessage msg) {this->deliverMessage(msg);};
-    this->connection = std::make_shared<ReliableBroadcast>(this->nodeAddress, this->correctNodes, deliverCallback);
+    std::function<void(RecvMessage)> rcoCallback = [this](RecvMessage msg) {this->deliverMessage(msg);};
+    this->connection = std::make_shared<ReliableCausalBroadcast>(this->nodeAddress, this->correctNodes, rcoCallback);
 }
 
 // Stops the connection at the networking part of the class

@@ -3,9 +3,11 @@
 // Init the class structure. Gets the IP from execution.
 ReliableCausalBroadcast::ReliableCausalBroadcast(
     std::string nodeAddress,
-    std::vector<std::string> nodesGroup
+    std::vector<std::string> nodesGroup,
+    std::function<void(RecvMessage)> deliverCallback
 ) {
     this->nodeAddress = nodeAddress;
+    this->deliverCallback = deliverCallback;
 
     // Init the vector clock with zeros
     std::map<std::string, int> zeroClocks;
@@ -15,8 +17,8 @@ ReliableCausalBroadcast::ReliableCausalBroadcast(
     this->vectorClock = zeroClocks;
 
     // Define the Broadcasting node
-    std::function<void(RecvMessage)> deliverCallback = [this](RecvMessage msg) {this->deliverRbMessage(msg);};
-    this->relBroadcast = std::make_shared<ReliableBroadcast>(nodeAddress, nodesGroup, deliverCallback);
+    std::function<void(RecvMessage)> rbCallback = [this](RecvMessage msg) {this->deliverRbMessage(msg);};
+    this->relBroadcast = std::make_shared<ReliableBroadcast>(nodeAddress, nodesGroup, rbCallback);
 }
 
 // Stops the connection at the networking part of the class
@@ -28,9 +30,8 @@ void ReliableCausalBroadcast::closeConnection() {
 void ReliableCausalBroadcast::broadcastMessage(Message message) {
 
     // (1) Deliver the message(except when sending BEAT)
-    deliverLock.lock();
-    this->deliveredMessages.push_back(message);
-    deliverLock.unlock();
+    RecvMessage recvMsg(this->nodeAddress, message);
+    this->deliverCallback(recvMsg);
 
     // (2) Add the clock data to the message and broadcas
     message.setClock(this->vectorClock);
@@ -61,6 +62,10 @@ void ReliableCausalBroadcast::deliverRbMessage(RecvMessage recvMessage) {
     }
 
     // (2) Perform deliver-pending procedure
+    this->deliverPendingProc();
+}
+
+void ReliableCausalBroadcast::deliverPendingProc() {
     bool stillGoing = true;
     while (stillGoing) {
         stillGoing = false;
@@ -74,9 +79,8 @@ void ReliableCausalBroadcast::deliverRbMessage(RecvMessage recvMessage) {
                 stillGoing = true;
 
                 // (1) Deliver the message
-                deliverLock.lock();
-                this->deliveredMessages.push_back(currentPair.second);
-                deliverLock.unlock();
+                RecvMessage recvMsg(currentPair.first, currentPair.second);
+                this->deliverCallback(recvMsg);
 
                 // (2) Update vectorClock of the sender
                 this->vectorClock[currentPair.first] += 1;
