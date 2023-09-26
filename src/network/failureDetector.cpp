@@ -21,7 +21,7 @@ FailureDetector::FailureDetector(
 
     std::set<std::string>::iterator it;
     for (it = correctNodes.begin(); it != correctNodes.end(); ++it) {
-        initialMaxTimes.insert(make_pair(*it, HEARTBEAT_PERIOD * 10));
+        initialMaxTimes.insert(make_pair(*it, HEARTBEAT_PERIOD * 5));
         initialTimes.insert(make_pair(*it, -1));
     };
     this->membersMaxWait = initialMaxTimes;
@@ -127,7 +127,7 @@ void FailureDetector::inspectBeatings() {
 // and send BEATS to that node.
 void FailureDetector::addNewMember(std::string memberAddress) {
     std::lock_guard<std::mutex> lock(membersLock);
-    membersMaxWait.insert(make_pair(memberAddress, HEARTBEAT_PERIOD * 10));
+    membersMaxWait.insert(make_pair(memberAddress, HEARTBEAT_PERIOD * 5));
     membersTimers.insert(make_pair(memberAddress, -1));
     correctNodes.insert(memberAddress);
 }

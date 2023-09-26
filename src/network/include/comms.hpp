@@ -13,7 +13,7 @@
 #define RESEND_TIME_S 1.5
 
 // Time between heartbeats
-#define HEARTBEAT_PERIOD 0.5
+#define HEARTBEAT_PERIOD 3
 
 // Define a max size for transmited messages
 #define MAX_MSG_SIZE 2048
