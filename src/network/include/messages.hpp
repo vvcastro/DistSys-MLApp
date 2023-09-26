@@ -20,6 +20,7 @@ enum MessageType {
     DATA,
     ACK,
     BEAT,
+    DSET,
     INVALID,
 };
 
@@ -32,11 +33,18 @@ class Message {
     // To manage internal data
     MessageType getType() { return type; };
     std::map<std::string, int> getClock() { return clock; }
+    int getViewId() { return viewId; };
+    std::vector<Message> getDSET() { return dset; };
+
+    // To set relevant variables
     void setClock(std::map<std::string, int> clock) { this->clock = clock; };
+    void setGroupView(int viewId) { this->viewId = viewId; };
+    void setDSET(std::vector<Message> dset) { this->dset = dset; };
 
     // To be able to exchange the message over the network
     std::string encodeToString();
     static Message decodeToMessage(const std::string encodedMessage);
+
     static Message getRespondMessage(const Message& other);
 
     // To compare messages
@@ -47,7 +55,17 @@ class Message {
     std::string sender;
     MessageType type;
     std::string data;
+
+    // For extra features
     std::map<std::string, int> clock;
+    std::vector<Message> dset;
+    int viewId;
+
+    // encoding features
+    std::string encodeNormalMessage();
+    std::string encodeDSETMessage();
+    static Message decodeNormalMessage(const std::string encodedMessage);
+    static Message decodeDSETMessage(const std::string encodedMessage);
 };
 
 // Encaptulation of a received message, it ease the management

@@ -4,21 +4,15 @@
 // Init the class structure. Gets the IP from execution.
 ReliableBroadcast::ReliableBroadcast(
     std::string nodeAddress,
-    std::vector<std::string> nodesGroup,
-    std::function<void(RecvMessage)> reliableDelivery
+    std::set<std::string> nodesGroup,
+    std::function<void(RecvMessage)> reliableDelivery,
+    std::function<void(std::string)> crashCallback
 ) {
     this->nodeAddress = nodeAddress;
-
-    // Populate the nodes group
-    std::set<std::string> groupAddrs;
-    for (size_t i = 0; i < nodesGroup.size(); ++i) {
-        groupAddrs.insert(nodesGroup[i]);
-    }
-    this->correctNodes = groupAddrs;
+    this->correctNodes = nodesGroup;
     this->deliveryCallback = reliableDelivery;
 
     // start FailureDetector
-    std::function<void(std::string)> crashCallback = [this](std::string address) {this->manageCrashedNode(address);};
     std::function<void(Message)> brodcastCallback = [this](Message msg) {this->bestEffortBroadcast(msg);};
     this->failureDetector = std::make_shared<FailureDetector>(correctNodes, crashCallback, brodcastCallback);
 

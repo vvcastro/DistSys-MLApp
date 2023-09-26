@@ -1,5 +1,5 @@
 #include "failureDetector.hpp"
-#include "reliableLinks.hpp"
+#include "relLinks.hpp"
 #include "messages.hpp"
 #include <functional>
 #include <algorithm>
@@ -12,8 +12,9 @@ class ReliableBroadcast {
     public:
     ReliableBroadcast(
         std::string nodeAddress,
-        std::vector<std::string> nodesGroup,
-        std::function<void(RecvMessage)> deliverCallback
+        std::set<std::string> nodesGroup,
+        std::function<void(RecvMessage)> deliverCallback,
+        std::function<void(std::string)> crashCallback
     );
 
     // Networking utilities
@@ -23,6 +24,7 @@ class ReliableBroadcast {
 
     // To change structures
     void deliverMessage(RecvMessage message);
+    void manageCrashedNode(std::string memberAddress);
 
     private:
 
@@ -31,14 +33,15 @@ class ReliableBroadcast {
     std::set<std::string> correctNodes;
 
     // For delivery of messages
-    std::function<void(RecvMessage)> deliveryCallback;
     std::map<std::string, std::vector<Message>> messagesFrom;
     std::vector<Message> deliveredMessages;
     std::mutex deliverLock;
 
+    // Callbacks to higher processes
+    std::function<void(RecvMessage)> deliveryCallback;
+
     // For the management of crashed processes
     std::mutex membersLock;
-    void manageCrashedNode(std::string memberAddress);
 
     // Entities for ReliableBroadcast
     std::shared_ptr<ReliableLink> reliableLink;

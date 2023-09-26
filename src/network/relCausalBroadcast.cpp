@@ -9,6 +9,12 @@ ReliableCausalBroadcast::ReliableCausalBroadcast(
     this->nodeAddress = nodeAddress;
     this->deliverCallback = deliverCallback;
 
+    // () Init correct groups as a Set
+    std::set<std::string> groupAddrs;
+    for (size_t i = 0; i < nodesGroup.size(); ++i) {
+        groupAddrs.insert(nodesGroup[i]);
+    }
+
     // Init the vector clock with zeros
     std::map<std::string, int> zeroClocks;
     for (size_t i = 0; i < nodesGroup.size(); ++i) {
@@ -18,7 +24,8 @@ ReliableCausalBroadcast::ReliableCausalBroadcast(
 
     // Define the Broadcasting node
     std::function<void(RecvMessage)> rbCallback = [this](RecvMessage msg) {this->deliverRbMessage(msg);};
-    this->relBroadcast = std::make_shared<ReliableBroadcast>(nodeAddress, nodesGroup, rbCallback);
+    std::function<void(std::string)> crashCallbak = [this](std::string crashed) {this->manageCrashedNode(crashed);};
+    this->relBroadcast = std::make_shared<ReliableBroadcast>(nodeAddress, groupAddrs, rbCallback, crashCallbak);
 }
 
 // Stops the connection at the networking part of the class
@@ -106,6 +113,13 @@ void ReliableCausalBroadcast::deliverPendingProc() {
             ++it;
         }
     }
+}
+
+void ReliableCausalBroadcast::manageCrashedNode(std::string crashedAddress) {
+
+    // (1) Remove from view and all relevant structures
+    this->relBroadcast->manageCrashedNode(crashedAddress);
+
 }
 
 // Just to have more modularisation in the managing of the classes

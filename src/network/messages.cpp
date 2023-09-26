@@ -7,38 +7,118 @@ Message::Message(std::string sender, MessageType type, std::string data) {
     this->type = type;
     this->data = data;
 }
-
 // Encodes the data into a string
 std::string Message::encodeToString() {
-    std::string strClock = mapToString(this->clock);
-    std::string encoded;
-
-    encoded += "(" + getTypeString(type) + ")";
-    encoded += "|" + sender + "|" + data + "|" + strClock + "|";
-    return encoded;
+    if (this->getType() == DSET) {
+        return this->encodeDSETMessage();
+    }
+    return this->encodeNormalMessage();
 }
 
 // Decodes the encrypted data transmited over the network.
 Message Message::decodeToMessage(std::string encodedMessage) {
     std::istringstream stream(encodedMessage);
 
+    // (1) Get the type of the message we are decoding
+    std::string strType, senderId, msgData, strClock, strViewId;
+    stream.ignore(1);
+    std::getline(stream, strType, ')');
+    MessageType msgType = stringToType(strType);
+
+    // (2) Apply the correct procedure
+    if (msgType == DSET) {
+        return Message::decodeDSETMessage(encodedMessage);
+    }
+    return Message::decodeNormalMessage(encodedMessage);
+}
+
+// Encodes the data into a string
+std::string Message::encodeNormalMessage() {
+    std::string strClock = mapToString(this->clock);
+    std::string encoded;
+
+    encoded += "(" + getTypeString(type) + ")|";
+    encoded += sender + "|" + data + "|" + strClock + "|";
+    encoded += std::to_string(viewId) + "|";
+    return encoded;
+}
+
+// Encodes a DSET message into a string
+std::string Message::encodeDSETMessage() {
+    std::string encoded;
+
+    // (1) Encode DSET to string structure
+    std::string encodedDSET;
+    for (size_t i = 0; i < this->dset.size(); ++i) {
+        encodedDSET += dset[i].encodeToString() + ";";
+    }
+
+    // (2) Encode the rest of the variables
+    encoded += "(" + getTypeString(type) + ")^";
+    encoded += sender + "^" + encodedDSET + "^";
+    encoded += std::to_string(viewId) + "^";
+    return encoded;
+}
+
+// Decodes the encrypted data transmited over the network.
+Message Message::decodeNormalMessage(std::string encodedMessage) {
+    std::istringstream stream(encodedMessage);
+
     // Parse the string
-    std::string strType, senderId, msgData, strClock;
+    std::string strType, senderId, msgData, strClock, strViewId;
     stream.ignore(1);
     std::getline(stream, strType, ')');
     stream.ignore(1);
     std::getline(stream, senderId, '|');
     std::getline(stream, msgData, '|');
     std::getline(stream, strClock, '|');
+    std::getline(stream, strViewId, '|');
 
     // Parse the values
     std::map<std::string, int> clock = stringToMap(strClock);
     MessageType msgType = stringToType(strType);
+    int viewId = std::stoi(strViewId);
 
     // Return the decoded message
     Message output(senderId, msgType, msgData);
     output.setClock(clock);
+    output.setGroupView(viewId);
     return output;
+}
+
+// Decodes a DSET type of message
+Message Message::decodeDSETMessage(std::string encodedMessage) {
+    std::istringstream stream(encodedMessage);
+
+    // (1) Parse the string
+    std::string strType, senderId, strDset, strViewId;
+    stream.ignore(1);
+    std::getline(stream, strType, ')');
+    stream.ignore(1);
+    std::getline(stream, senderId, '^');
+    std::getline(stream, strDset, '^');
+    std::getline(stream, strViewId, '^');
+
+    // (2) Parse basic attributes
+    MessageType msgType = stringToType(strType);
+    int viewId = std::stoi(strViewId);
+
+    // (3) Parse the DSET messages
+    std::vector<Message> decodedMessages;
+
+    std::string message;
+    std::istringstream dsetStream(strDset);
+    while (std::getline(dsetStream, message, ';')) {
+        Message decodedMsg = Message::decodeToMessage(message);
+        decodedMessages.push_back(decodedMsg);
+    }
+
+    // (4) Create the output message
+    Message output(senderId, msgType, "");
+    output.setGroupView(viewId);
+    output.setDSET(decodedMessages);
+    return output;
+
 }
 
 // Gets the respondData for a given message
@@ -85,7 +165,8 @@ bool Message::operator==(const Message& other) {
     bool sender_eq = (sender == other.sender);
     bool data_eq = (data == other.data);
     bool clock_eq = (mapToString(clock) == mapToString(other.clock));
-    return sender_eq && data_eq && clock_eq;
+    bool check_vid = (viewId == other.viewId);
+    return sender_eq && data_eq && clock_eq && check_vid;
 }
 
 // For the RecvMessage class, check if two messages are the same.
@@ -102,6 +183,8 @@ std::string getTypeString(MessageType type) {
             return "ACK";
         case BEAT:
             return "BEAT";
+        case DSET:
+            return "DSET";
         default:
             return "";
     }
@@ -113,7 +196,8 @@ MessageType stringToType(const std::string typeName) {
     std::map<std::string, MessageType> typeMaps = {
         {"DATA", DATA},
         {"ACK", ACK},
-        {"BEAT", BEAT}
+        {"BEAT", BEAT},
+        {"DSET", DSET}
     };
 
     // Find the matching values

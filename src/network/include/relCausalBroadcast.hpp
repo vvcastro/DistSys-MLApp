@@ -24,6 +24,7 @@ class ReliableCausalBroadcast {
     // Basics for communication
     std::string nodeAddress;
     std::shared_ptr<ReliableBroadcast> relBroadcast;
+    void manageCrashedNode(std::string crashedAddress);
 
     // For delivery of messages
     std::function<void(RecvMessage)> deliverCallback;
