@@ -64,7 +64,6 @@ void ReliableBroadcast::broadcastMessage(Message message) {
         // (1.5) Deliver the message to the upper class
         RecvMessage recvMsg(this->nodeAddress, message);
         this->deliveryCallback(recvMsg);
-        recvMsg.displayMessage();
     }
 
     // (2) Broadcast the message to all the other nodes

@@ -132,6 +132,7 @@ void ReliableLink::handleMessage(RecvMessage recvMessage) {
 
 // A "new" data message was received: 
 void ReliableLink::handleDataMessage(RecvMessage recvMesage) {
+    recvMesage.displayMessage();
 
     // (1) Send ACK (even on repetition)
     Message respondData = Message::getRespondMessage(recvMesage.message);
@@ -156,6 +157,7 @@ void ReliableLink::handleDataMessage(RecvMessage recvMesage) {
 
 // When receive an ACK message remove the message from the waiting list.
 void ReliableLink::handleACKMessage(RecvMessage recvMesage) {
+    recvMesage.displayMessage();
 
     // (1) Lock the waitingList to copy the messages to check
     waitingLock.lock();
