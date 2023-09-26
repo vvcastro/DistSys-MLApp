@@ -117,6 +117,6 @@ void ReliableBroadcast::manageCrashedNode(std::string memberAddress) {
     // (2) Broadcast all the messages
     for (size_t i = 0; i < fromCrashed.size(); ++i) {
         Message toBroadcast = fromCrashed[i];
-        this->broadcastMessage(toBroadcast);
+        this->bestEffortBroadcast(toBroadcast);
     }
 }

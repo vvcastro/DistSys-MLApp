@@ -22,12 +22,17 @@ int main(int argc, char* argv[]) {
     node->showConnectionData();
 
     std::string userInput;
-    std::cout << "Enter a message to send.\n> ";
+    std::cout << "Enter a command: ( start )\n> ";
     std::cin >> userInput;
-    node->broadcastMessage(userInput);
-
-    while (true) {
-        std::this_thread::sleep_for(std::chrono::seconds(1));
+    if (userInput == std::string("start")) {
+        while (true) {
+            std::string baseLetters("ABCDEFGHIJKLMN");
+            for (char& c : baseLetters) {
+                std::string toSendd(3, c);
+                node->broadcastMessage(toSendd);
+                std::this_thread::sleep_for(std::chrono::seconds(1));
+            }
+        }
     }
 
     node->close();
