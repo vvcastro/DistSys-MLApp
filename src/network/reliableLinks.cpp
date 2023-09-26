@@ -39,14 +39,14 @@ void ReliableLink::stopLink() {
 
 // Send a message over the network to an specific toAddr;
 void ReliableLink::sendMessage(std::string toAddress, Message message, bool resending) {
-    SentMessage waitingMessage(toAddress, message);
-    waitingMessage.displayMessage();
 
     // (1) Send the encoded message
     std::string encodedMessage = message.encodeToString();
     sendUDPMessage(sendSocket, toAddress, encodedMessage);
 
     if (resending) { return; }
+    SentMessage waitingMessage(toAddress, message);
+    waitingMessage.displayMessage();
 
     // (2) If we are sending a DATA message, add it to waiting messages
     if ((message.getType() == DATA) && (!resending)) {
@@ -108,7 +108,6 @@ void ReliableLink::receivingChannel() {
 
 // Performs the preprocessing of the message depending on the type
 void ReliableLink::handleMessage(RecvMessage recvMessage) {
-    recvMessage.displayMessage();
     switch (recvMessage.message.getType()) {
         case DATA:
             handleDataMessage(recvMessage);
