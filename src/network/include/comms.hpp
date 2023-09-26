@@ -16,7 +16,7 @@
 #define HEARTBEAT_PERIOD 0.5
 
 // Define a max size for transmited messages
-#define MAX_MSG_SIZE 1024
+#define MAX_MSG_SIZE 2048
 
 // --------- Define basic communication functions
 int defineSenderSocket();
