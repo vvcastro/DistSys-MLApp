@@ -13,6 +13,10 @@ void handleCtrlC(int signal) {
     exit(signal);
 }
 
+void broadcasterFunc(std::string data) {
+    node->broadcastMessage(data);
+}
+
 int main(int argc, char* argv[]) {
     signal(SIGINT, handleCtrlC);
     std::vector<std::string> execArgs = getArgs(argc, argv);
@@ -27,9 +31,8 @@ int main(int argc, char* argv[]) {
     if (userInput == std::string("start")) {
         std::string baseLetters("ABCDEFGHIJKLMN");
         for (char& c : baseLetters) {
-            std::string toSendd(3, c);
-            node->broadcastMessage(toSendd);
-            std::this_thread::sleep_for(std::chrono::seconds(1));
+            std::string toSend(3, c);
+            broadcasterFunc(toSend);
         }
     }
 

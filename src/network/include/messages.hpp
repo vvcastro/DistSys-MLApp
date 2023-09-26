@@ -6,6 +6,7 @@
 #include <utility>
 #include <vector>
 #include <string>
+#include <map>
 
 // Codes for text colors
 #define RESET   "\x1B[0m"
@@ -30,7 +31,8 @@ class Message {
 
     // To manage internal data
     MessageType getType() { return type; };
-    void setClock(std::vector<std::pair<std::string, int> > vclocks);
+    std::map<std::string, int> getClock() { return clock; }
+    void setClock(std::map<std::string, int> clock) { this->clock = clock; };
 
     // To be able to exchange the message over the network
     std::string encodeToString();
@@ -39,12 +41,13 @@ class Message {
 
     // To compare messages
     bool operator==(const Message& other);
+    bool operator<(const Message& other) const;
 
     private:
     std::string sender;
     MessageType type;
     std::string data;
-    std::vector<std::pair<std::string, int> > vclock;
+    std::map<std::string, int> clock;
 };
 
 // Encaptulation of a received message, it ease the management
@@ -66,15 +69,20 @@ class SentMessage {
     SentMessage(std::string toAddress, Message message);
     bool isResponse(RecvMessage other);
     void displayMessage();
-    void addCounter();
 
     std::string toAddress;
     Message message;
+
+    // To compute how many times a message is re-sent
     int reCounter;
+    void addCounter() { ++reCounter; };
+
 };
 
 // ----------- AUX functions
 std::string getTypeString(MessageType type);
 MessageType stringToType(const std::string typeName);
 
+std::string mapToString(std::map<std::string, int> baseMap);
+std::map<std::string, int> stringToMap(std::string strMap);
 #endif

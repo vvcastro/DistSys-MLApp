@@ -8,7 +8,7 @@ Node::Node(std::string networkInt) {
     this->correctNodes = PROCESS_POOL;
 
     // Start the connection
-    this->connection = std::make_shared<ReliableBroadcast>(this->nodeAddress, this->correctNodes);
+    this->connection = std::make_shared<ReliableCausalBroadcast>(this->nodeAddress, this->correctNodes);
 }
 
 // Stops the connection at the networking part of the class

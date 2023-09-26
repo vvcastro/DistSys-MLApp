@@ -10,9 +10,11 @@ Message::Message(std::string sender, MessageType type, std::string data) {
 
 // Encodes the data into a string
 std::string Message::encodeToString() {
+    std::string strClock = mapToString(this->clock);
     std::string encoded;
+
     encoded += "(" + getTypeString(type) + ")";
-    encoded += "|" + sender + "|" + data + "|-|";
+    encoded += "|" + sender + "|" + data + "|" + strClock + "|";
     return encoded;
 }
 
@@ -21,23 +23,28 @@ Message Message::decodeToMessage(std::string encodedMessage) {
     std::istringstream stream(encodedMessage);
 
     // Parse the string
-    std::string strType, senderId, msgData, vclock;
+    std::string strType, senderId, msgData, strClock;
     stream.ignore(1);
     std::getline(stream, strType, ')');
     stream.ignore(1);
     std::getline(stream, senderId, '|');
     std::getline(stream, msgData, '|');
-    std::getline(stream, vclock, '|');
+    std::getline(stream, strClock, '|');
 
-    // Re-construct the message
+    // Parse the values
+    std::map<std::string, int> clock = stringToMap(strClock);
     MessageType msgType = stringToType(strType);
-    return Message(senderId, msgType, msgData);
+
+    // Return the decoded message
+    Message output(senderId, msgType, msgData);
+    output.setClock(clock);
+    return output;
 }
 
 // Gets the respondData for a given message
 Message Message::getRespondMessage(const Message& other) {
     Message respond(other.sender, ACK, other.data);
-    respond.setClock(other.vclock);
+    respond.setClock(other.clock);
     return respond;
 }
 
@@ -77,22 +84,16 @@ bool SentMessage::isResponse(RecvMessage other) {
     return (toAddress == other.fromAddress) && msg_eq;
 }
 
-// Set the VectorClocks from the sender. Note: will be done under a lock.
-void Message::setClock(std::vector<std::pair<std::string, int> > vclock) {
-    this->vclock = vclock;
-}
-
-// Add a counter for a reSent message, just to keep track of stats
-void SentMessage::addCounter() {
-    ++reCounter;
-}
-
 // Overrides the default == operator
 bool Message::operator==(const Message& other) {
     bool sender_eq = (sender == other.sender);
     bool data_eq = (data == other.data);
-    bool clock_eq = (vclock == other.vclock);
+    bool clock_eq = (mapToString(clock) == mapToString(other.clock));
     return sender_eq && data_eq && clock_eq;
+}
+
+bool Message::operator<(const Message& other) const {
+    return mapToString(clock) < mapToString(other.clock);
 }
 
 // For the RecvMessage class, check if two messages are the same.
@@ -130,4 +131,28 @@ MessageType stringToType(const std::string typeName) {
         return it->second;
     }
     return INVALID;
+}
+
+std::string mapToString(std::map<std::string, int> baseMap) {
+    std::ostringstream oss;
+    for (const auto& pair : baseMap) {
+        oss << pair.first << ":" << pair.second << ";";
+    }
+    return oss.str();
+}
+
+std::map<std::string, int> stringToMap(std::string strMap) {
+    std::map<std::string, int> result;
+    std::istringstream iss(strMap);
+
+    std::string pair;
+    while (std::getline(iss, pair, ';')) {
+        std::istringstream pairStream(pair);
+        std::string key;
+        int value;
+        if (std::getline(pairStream, key, ':') && pairStream >> value) {
+            result[key] = value;
+        }
+    }
+    return result;
 }

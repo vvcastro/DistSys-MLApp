@@ -12,7 +12,8 @@ class ReliableBroadcast {
     public:
     ReliableBroadcast(
         std::string nodeAddress,
-        std::vector<std::string> nodesGroup
+        std::vector<std::string> nodesGroup,
+        std::function<void(RecvMessage)> deliverCallback
     );
 
     // Networking utilities
@@ -20,7 +21,7 @@ class ReliableBroadcast {
     void broadcastMessage(Message message);
     void closeConnection();
 
-    // Structure will be updated
+    // To change structures
     void deliverMessage(RecvMessage message);
 
     private:
@@ -30,6 +31,7 @@ class ReliableBroadcast {
     std::set<std::string> correctNodes;
 
     // For delivery of messages
+    std::function<void(RecvMessage)> deliveryCallback;
     std::map<std::string, std::vector<Message>> messagesFrom;
     std::vector<Message> deliveredMessages;
     std::mutex deliverLock;

@@ -1,10 +1,11 @@
-#include "include/reliableBroadcast.hpp"
+#include "include/relBroadcast.hpp"
 
 
 // Init the class structure. Gets the IP from execution.
 ReliableBroadcast::ReliableBroadcast(
     std::string nodeAddress,
-    std::vector<std::string> nodesGroup
+    std::vector<std::string> nodesGroup,
+    std::function<void(RecvMessage)> reliableDelivery
 ) {
     this->nodeAddress = nodeAddress;
 
@@ -14,6 +15,7 @@ ReliableBroadcast::ReliableBroadcast(
         groupAddrs.insert(nodesGroup[i]);
     }
     this->correctNodes = groupAddrs;
+    this->deliveryCallback = reliableDelivery;
 
     // start FailureDetector
     std::function<void(std::string)> crashCallback = [this](std::string address) {this->manageCrashedNode(address);};
@@ -53,11 +55,15 @@ void ReliableBroadcast::bestEffortBroadcast(Message message) {
 // Creates a message and uses the underlying connection to transmit it
 void ReliableBroadcast::broadcastMessage(Message message) {
 
-    // (1) Add the message to delivered (except when sending BEAT)
+    // (1) Add the message to delivered and deliver (except when sending BEAT)
     if (message.getType() != BEAT) {
         deliverLock.lock();
         this->deliveredMessages.push_back(message);
         deliverLock.unlock();
+
+        // (1.5) Deliver the message to the upper class
+        RecvMessage recvMsg(this->nodeAddress, message);
+        this->deliveryCallback(recvMsg);
     }
 
     // (2) Broadcast the message to all the other nodes
@@ -83,7 +89,9 @@ void ReliableBroadcast::deliverMessage(RecvMessage recvMessage) {
     deliverLock.lock();
     this->deliveredMessages.push_back(message);
     deliverLock.unlock();
-    recvMessage.displayMessage();
+
+    // (3.5) Deliver the message to the upper class
+    this->deliveryCallback(recvMessage);
 
     // (4) Check if the sender is still a correct process
     membersLock.lock();
