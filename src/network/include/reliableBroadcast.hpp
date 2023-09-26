@@ -3,6 +3,7 @@
 #include "messages.hpp"
 #include <functional>
 #include <algorithm>
+#include <memory>
 #include <set>
 #include <map>
 
