@@ -91,13 +91,6 @@ bool Message::operator==(const Message& other) {
     return sender_eq && data_eq && clock_eq;
 }
 
-bool Message::operator<(const Message& other) const {
-    bool sender_eq = (sender == other.sender);
-    bool data_eq = (data == other.data);
-    bool clock_eq = (mapToString(clock) == mapToString(other.clock));
-    return sender_eq && data_eq && clock_eq;
-}
-
 // For the RecvMessage class, check if two messages are the same.
 bool RecvMessage::operator==(const RecvMessage& other) {
     return (fromAddress == other.fromAddress) && (message == other.message);
