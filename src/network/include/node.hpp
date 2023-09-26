@@ -1,4 +1,4 @@
-#include "relCausalBroadcast.hpp"
+#include "relBroadcast.hpp"
 #include <memory>
 
 class Node {
@@ -11,10 +11,11 @@ class Node {
 
     // Networking utilities
     void broadcastMessage(std::string data);
+    void deliverMessage(RecvMessage recvMessage);
 
     private:
     std::string nodeAddress;
     std::vector<std::string> correctNodes;
-    std::shared_ptr<ReliableCausalBroadcast> connection;
+    std::shared_ptr<ReliableBroadcast> connection;
 
 };

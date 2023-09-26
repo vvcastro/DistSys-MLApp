@@ -44,7 +44,7 @@ void ReliableCausalBroadcast::broadcastMessage(Message message) {
 void ReliableCausalBroadcast::deliverRbMessage(RecvMessage recvMessage) {
     std::string senderAddress = recvMessage.fromAddress;
     Message sentMessage = recvMessage.message;
-    if (senderAddress == nodeAddress) { return; };
+    if (senderAddress == this->nodeAddress) { return; };
 
     // (1) Add to pending
     bool isPresent = false;
