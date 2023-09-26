@@ -15,7 +15,7 @@ ReliableCausalBroadcast::ReliableCausalBroadcast(
     this->vectorClock = zeroClocks;
 
     // Define the Broadcasting node
-    std::function<void(RecvMessage)> deliverCallback = [this](RecvMessage msg) {this->deliverMessage(msg);};
+    std::function<void(RecvMessage)> deliverCallback = [this](RecvMessage msg) {this->deliverRbMessage(msg);};
     this->relBroadcast = std::make_shared<ReliableBroadcast>(nodeAddress, nodesGroup, deliverCallback);
 }
 
@@ -41,7 +41,7 @@ void ReliableCausalBroadcast::broadcastMessage(Message message) {
 }
 
 // This is just the delivery to a bigger structure of the message
-void ReliableCausalBroadcast::deliverMessage(RecvMessage recvMessage) {
+void ReliableCausalBroadcast::deliverRbMessage(RecvMessage recvMessage) {
     std::string senderAddress = recvMessage.fromAddress;
     Message sentMessage = recvMessage.message;
     if (senderAddress == nodeAddress) { return; };
@@ -61,7 +61,9 @@ void ReliableCausalBroadcast::deliverMessage(RecvMessage recvMessage) {
     }
 
     // (2) Perform deliver-pending procedure
-    while (true) {
+    bool stillGoing = true;
+    while (stillGoing) {
+        stillGoing = false;
 
         // Look if there is a pair with the conditions
         std::vector<std::pair<std::string, Message>>::iterator it;
@@ -69,6 +71,7 @@ void ReliableCausalBroadcast::deliverMessage(RecvMessage recvMessage) {
             std::pair<std::string, Message> currentPair = *it;
             std::map<std::string, int> clockToCompare = currentPair.second.getClock();
             if (this->isPreviousClock(clockToCompare)) {
+                stillGoing = true;
 
                 // (1) Deliver the message
                 deliverLock.lock();

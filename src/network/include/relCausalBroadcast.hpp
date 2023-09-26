@@ -15,7 +15,7 @@ class ReliableCausalBroadcast {
 
     // Networking utilities
     void broadcastMessage(Message message);
-    void deliverMessage(RecvMessage message);
+    void deliverRbMessage(RecvMessage message);
     void closeConnection();
 
     private:
