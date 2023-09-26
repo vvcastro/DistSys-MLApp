@@ -46,7 +46,6 @@ void ReliableLink::sendMessage(std::string toAddress, Message message, bool rese
 
     if (resending) { return; }
     SentMessage waitingMessage(toAddress, message);
-    waitingMessage.displayMessage();
 
     // (2) If we are sending a DATA message, add it to waiting messages
     if ((message.getType() == DATA) && (!resending)) {

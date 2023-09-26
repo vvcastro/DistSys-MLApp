@@ -21,8 +21,8 @@ FailureDetector::FailureDetector(
 
     std::set<std::string>::iterator it;
     for (it = correctNodes.begin(); it != correctNodes.end(); ++it) {
-        initialMaxTimes.insert(make_pair(*it, HEARTBEAT_PERIOD * 5));
-        initialTimes.insert(make_pair(*it, -1));
+        initialMaxTimes.insert(make_pair(*it, HEARTBEAT_PERIOD * 3));
+        initialTimes.insert(make_pair(*it, -100));
     };
     this->membersMaxWait = initialMaxTimes;
     this->membersTimers = initialTimes;
@@ -77,7 +77,7 @@ void FailureDetector::handleBeatMessage(RecvMessage recvMessage) {
     maxTimeOut = maxPos->second;
 
     // First BEAT from Node
-    if (currentTimeOut == -1) {
+    if (currentTimeOut == -100) {
         pos->second = maxTimeOut;
         return;
     }
@@ -90,7 +90,7 @@ void FailureDetector::handleBeatMessage(RecvMessage recvMessage) {
 
 // Checks periodically for the timeouts of the group processes
 void FailureDetector::inspectBeatings() {
-    float samplingTime = HEARTBEAT_PERIOD / 5;
+    float samplingTime = HEARTBEAT_PERIOD / 2;
     while (isRunning()) {
         std::this_thread::sleep_for(std::chrono::duration<float>(samplingTime));
         std::vector<std::string> susMembers;
@@ -99,14 +99,13 @@ void FailureDetector::inspectBeatings() {
         membersLock.lock();
         std::map<std::string, float>::iterator pos;
         for (pos = membersTimers.begin(); pos != membersTimers.end(); ++pos) {
-            if (pos->second == -1) { continue; }
+            if (pos->second == -100) { continue; };
             pos->second -= samplingTime;
 
             // If the timeout hasn't expired we are fine
+            std::string susAddress = pos->first;
             if (pos->second > 0) { continue; }
 
-            // Now we check if it crossed the threhsold
-            std::string susAddress = pos->first;
             std::map<std::string, float>::iterator maxPos = membersMaxWait.find(susAddress);
             if (pos->second <= (-1.5 * maxPos->second)) {
                 susMembers.push_back(pos->first);
@@ -119,7 +118,6 @@ void FailureDetector::inspectBeatings() {
             std::string susAddress = susMembers[i];
             handleCrash(susAddress);
         }
-
     }
 }
 
@@ -127,8 +125,8 @@ void FailureDetector::inspectBeatings() {
 // and send BEATS to that node.
 void FailureDetector::addNewMember(std::string memberAddress) {
     std::lock_guard<std::mutex> lock(membersLock);
-    membersMaxWait.insert(make_pair(memberAddress, HEARTBEAT_PERIOD * 5));
-    membersTimers.insert(make_pair(memberAddress, -1));
+    membersMaxWait.insert(make_pair(memberAddress, HEARTBEAT_PERIOD * 3));
+    membersTimers.insert(make_pair(memberAddress, -100));
     correctNodes.insert(memberAddress);
 }
 
