@@ -33,7 +33,7 @@ void ReliableCausalBroadcast::broadcastMessage(Message message) {
     deliverLock.unlock();
 
     // (2) Add the clock data to the message and broadcas
-    // message.setClock(this->vectorClock);
+    message.setClock(this->vectorClock);
     this->relBroadcast->broadcastMessage(message);
 
     // (3) Update node's clock

@@ -96,6 +96,7 @@ void ReliableLink::receivingChannel() {
             close(recvSocket);
             throw std::runtime_error("Could not read @RL-listener");
         };
+        std::cout << "Read " << std::to_string(bytesReceived) << " bytes." << std::endl;
 
         // Get the delivery info into strings
         inet_ntop(AF_INET, &(sourceAddr.sin_addr), senderIP, INET_ADDRSTRLEN);
