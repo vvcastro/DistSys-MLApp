@@ -33,6 +33,7 @@ int main(int argc, char* argv[]) {
         for (char& c : baseLetters) {
             std::string toSend(3, c);
             broadcasterFunc(toSend);
+            std::this_thread::sleep_for(std::chrono::seconds(1));
         }
     }
 
